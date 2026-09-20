@@ -15,6 +15,7 @@ interface CartState {
   clearCart: () => void;
   getSubtotal: () => number;
   getTotal: () => number;
+  getItemQuantityInCart: (productId: string) => number;
 }
 
 export const useCartStore = create<CartState>((set, get) => ({
@@ -26,6 +27,16 @@ export const useCartStore = create<CartState>((set, get) => ({
   addItem: (product: Product) => {
     set((state) => {
       const existing = state.items.find((item) => item.product.id === product.id);
+
+      // Check available physical stock
+      if (!product.is_service) {
+        const currentQty = existing ? existing.quantity : 0;
+        if (currentQty >= product.stock_quantity) {
+          // Cannot add more than in stock!
+          return state;
+        }
+      }
+
       if (existing) {
         return {
           items: state.items.map((item) =>
@@ -35,6 +46,7 @@ export const useCartStore = create<CartState>((set, get) => ({
           ),
         };
       }
+
       return {
         items: [...state.items, { product, quantity: 1, unit_price: product.sell_price }],
       };
@@ -48,13 +60,23 @@ export const useCartStore = create<CartState>((set, get) => ({
   },
 
   updateQuantity: (productId: string, quantity: number) => {
+    const currentItem = get().items.find((item) => item.product.id === productId);
+    if (!currentItem) return;
+
     if (quantity <= 0) {
       get().removeItem(productId);
       return;
     }
+
+    // Cap at available stock
+    let safeQuantity = quantity;
+    if (!currentItem.product.is_service && quantity > currentItem.product.stock_quantity) {
+      safeQuantity = currentItem.product.stock_quantity;
+    }
+
     set((state) => ({
       items: state.items.map((item) =>
-        item.product.id === productId ? { ...item, quantity } : item
+        item.product.id === productId ? { ...item, quantity: safeQuantity } : item
       ),
     }));
   },
@@ -71,5 +93,10 @@ export const useCartStore = create<CartState>((set, get) => ({
   getTotal: () => {
     const subtotal = get().getSubtotal();
     return Math.max(0, subtotal - get().discount);
+  },
+
+  getItemQuantityInCart: (productId: string) => {
+    const found = get().items.find((item) => item.product.id === productId);
+    return found ? found.quantity : 0;
   },
 }));

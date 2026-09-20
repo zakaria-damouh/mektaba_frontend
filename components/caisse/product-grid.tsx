@@ -5,7 +5,7 @@ import { Product, Category } from '@/types';
 import { useCartStore } from '@/store/use-cart-store';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, Plus, AlertTriangle, Package } from 'lucide-react';
+import { Search, AlertTriangle, Package } from 'lucide-react';
 
 interface ProductGridProps {
   products: Product[];
@@ -16,7 +16,9 @@ interface ProductGridProps {
 export function ProductGrid({ products, categories, isLoading }: ProductGridProps) {
   const [search, setSearch] = useState('');
   const [selectedCat, setSelectedCat] = useState('all');
+  
   const addItem = useCartStore((state) => state.addItem);
+  const cartItems = useCartStore((state) => state.items);
 
   const filtered = products.filter((p) => {
     const matchesSearch =
@@ -40,7 +42,7 @@ export function ProductGrid({ products, categories, isLoading }: ProductGridProp
           />
         </div>
 
-        {/* Category horizontal scroll bar */}
+        {/* Category horizontal scroll */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
           <button
             type="button"
@@ -70,7 +72,7 @@ export function ProductGrid({ products, categories, isLoading }: ProductGridProp
         </div>
       </div>
 
-      {/* Product Grid */}
+      {/* Product Cards Grid */}
       <div className="flex-1 overflow-y-auto">
         {isLoading ? (
           <div className="flex h-64 items-center justify-center">
@@ -84,70 +86,88 @@ export function ProductGrid({ products, categories, isLoading }: ProductGridProp
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2.5">
             {filtered.map((product) => {
+              // How many of this item are already in the cart?
+              const inCartQty =
+                cartItems.find((item) => item.product.id === product.id)?.quantity || 0;
+
+              const isOut = !product.is_service && product.stock_quantity <= 0;
+              const isMaxInCart =
+                !product.is_service && inCartQty >= product.stock_quantity;
               const isLow =
                 !product.is_service &&
                 product.stock_quantity <= product.min_stock_level;
-              const isOut = !product.is_service && product.stock_quantity <= 0;
+
+              const isDisabled = isOut || isMaxInCart;
 
               return (
                 <button
-                key={product.id}
-                type="button"
-                onClick={() => !isOut && addItem(product)}
-                disabled={isOut}
-                className={`group flex flex-col justify-between text-left rounded-2xl border bg-white overflow-hidden shadow-xs transition-all hover:border-indigo-400 hover:shadow-sm active:scale-[0.98] ${
-                    isOut
-                    ? 'opacity-50 cursor-not-allowed border-slate-200'
-                    : 'border-slate-200 cursor-pointer'
-                }`}
+                  key={product.id}
+                  type="button"
+                  onClick={() => !isDisabled && addItem(product)}
+                  disabled={isDisabled}
+                  className={`group flex flex-col justify-between text-left rounded-2xl border bg-white overflow-hidden shadow-xs transition-all ${
+                    isDisabled
+                      ? 'opacity-50 cursor-not-allowed border-slate-200'
+                      : 'border-slate-200 hover:border-indigo-400 hover:shadow-sm active:scale-[0.98] cursor-pointer'
+                  }`}
                 >
-                {/* Product Image or Fallback Placeholder */}
-                <div className="h-28 w-full bg-slate-50 flex items-center justify-center overflow-hidden border-b border-slate-100 relative">
+                  {/* Photo Thumbnail */}
+                  <div className="h-28 w-full bg-slate-50 flex items-center justify-center overflow-hidden border-b border-slate-100 relative">
                     {product.image_url ? (
-                    <img
+                      <img
                         src={product.image_url}
                         alt={product.name}
                         className="h-full w-full object-contain p-2 group-hover:scale-105 transition-transform duration-200"
-                    />
+                      />
                     ) : (
-                    <div className="flex flex-col items-center justify-center text-slate-300">
+                      <div className="flex flex-col items-center justify-center text-slate-300">
                         <Package className="h-8 w-8 stroke-[1.5]" />
-                    </div>
+                      </div>
                     )}
 
-                    {/* Service badge overlay */}
-                    {product.is_service && (
-                    <span className="absolute top-2 right-2 rounded-md bg-blue-600/90 backdrop-blur-xs text-white text-[10px] font-bold px-1.5 py-0.5">
+                    {/* Badge Overlays */}
+                    {product.is_service ? (
+                      <span className="absolute top-2 right-2 rounded-md bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5">
                         Service
-                    </span>
-                    )}
-                </div>
+                      </span>
+                    ) : isOut ? (
+                      <span className="absolute top-2 right-2 rounded-md bg-rose-600 text-white text-[10px] font-bold px-1.5 py-0.5">
+                        Épuisé
+                      </span>
+                    ) : isMaxInCart ? (
+                      <span className="absolute top-2 right-2 rounded-md bg-amber-600 text-white text-[10px] font-bold px-1.5 py-0.5">
+                        Max atteint ({inCartQty})
+                      </span>
+                    ) : null}
+                  </div>
 
-                {/* Card Details */}
-                <div className="p-3 flex-1 flex flex-col justify-between">
+                  {/* Card Details */}
+                  <div className="p-3 flex-1 flex flex-col justify-between">
                     <div>
-                    <div className="font-semibold text-slate-900 text-xs line-clamp-2 leading-snug">
+                      <div className="font-semibold text-slate-900 text-xs line-clamp-2 leading-snug">
                         {product.name}
-                    </div>
-                    <div className="text-[10px] text-slate-400 mt-0.5">
+                      </div>
+                      <div className="text-[10px] text-slate-400 mt-0.5">
                         {product.category?.name || 'Général'}
-                    </div>
+                      </div>
                     </div>
 
                     <div className="mt-2.5 flex items-center justify-between pt-2 border-t border-slate-100">
-                    <span className="text-sm font-black text-indigo-700">
+                      <span className="text-sm font-black text-indigo-700">
                         {product.sell_price.toFixed(2)} DH
-                    </span>
+                      </span>
 
-                    {!product.is_service && (
-                        <span className={`text-[10px] font-bold ${
-                        isLow ? 'text-amber-600' : 'text-slate-400'
-                        }`}>
-                        x{product.stock_quantity}
+                      {!product.is_service && (
+                        <span
+                          className={`text-[10px] font-bold ${
+                            isLow ? 'text-amber-600' : 'text-slate-400'
+                          }`}
+                        >
+                          Stock: {product.stock_quantity}
                         </span>
-                    )}
+                      )}
                     </div>
-                </div>
+                  </div>
                 </button>
               );
             })}

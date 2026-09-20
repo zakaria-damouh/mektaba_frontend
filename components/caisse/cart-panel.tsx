@@ -32,7 +32,6 @@ export function CartPanel() {
     removeItem,
     setDiscount,
     setPaymentMethod,
-    setNotes,
     clearCart,
     getSubtotal,
     getTotal,
@@ -40,7 +39,6 @@ export function CartPanel() {
 
   const [saleSuccess, setSaleSuccess] = useState<string | null>(null);
 
-  // Sale Checkout Mutation
   const checkoutMutation = useMutation({
     mutationFn: async () => {
       if (items.length === 0) throw new Error('Le panier est vide');
@@ -62,14 +60,13 @@ export function CartPanel() {
       return data;
     },
     onSuccess: (saleId) => {
-      // Invalidate products so inventory counts refresh automatically
       queryClient.invalidateQueries({ queryKey: ['products'] });
       setSaleSuccess(saleId);
       clearCart();
       setTimeout(() => setSaleSuccess(null), 4000);
     },
     onError: (err: any) => {
-      alert(`Erreur lors de la vente: ${err.message}`);
+      alert(err.message || 'Erreur lors de la vente');
     },
   });
 
@@ -111,56 +108,69 @@ export function CartPanel() {
             <p className="mt-2 text-xs">Touchez un article à gauche pour l'ajouter</p>
           </div>
         ) : (
-          items.map((item) => (
-            <div
-              key={item.product.id}
-              className="flex items-center justify-between gap-2 rounded-xl border border-slate-100 p-2.5 bg-slate-50/50"
-            >
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold text-xs text-slate-900 truncate">
-                  {item.product.name}
-                </div>
-                <div className="text-[11px] text-slate-500">
-                  {item.unit_price.toFixed(2)} DH / u
-                </div>
-              </div>
+          items.map((item) => {
+            const isMaxStockReached =
+              !item.product.is_service &&
+              item.quantity >= item.product.stock_quantity;
 
-              {/* Quantity buttons */}
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                  className="h-7 w-7 flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
-                >
-                  <Minus className="h-3 w-3" />
-                </button>
-                <span className="w-6 text-center text-xs font-bold text-slate-800">
-                  {item.quantity}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                  className="h-7 w-7 flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
-                >
-                  <Plus className="h-3 w-3" />
-                </button>
-              </div>
-
-              {/* Subtotal & Delete */}
-              <div className="text-right pl-1">
-                <div className="font-bold text-xs text-slate-900">
-                  {(item.unit_price * item.quantity).toFixed(2)} DH
+            return (
+              <div
+                key={item.product.id}
+                className="flex items-center justify-between gap-2 rounded-xl border border-slate-100 p-2.5 bg-slate-50/50"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-xs text-slate-900 truncate">
+                    {item.product.name}
+                  </div>
+                  <div className="text-[11px] text-slate-500">
+                    {item.unit_price.toFixed(2)} DH / u
+                    {isMaxStockReached && (
+                      <span className="ml-2 text-[10px] font-bold text-amber-600">
+                        (Stock max atteint: {item.product.stock_quantity})
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => removeItem(item.product.id)}
-                  className="text-slate-400 hover:text-rose-600 transition-colors"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                </button>
+
+                {/* Quantity Controls with disabled + button when at max */}
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                    className="h-7 w-7 flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
+                  >
+                    <Minus className="h-3 w-3" />
+                  </button>
+                  <span className="w-6 text-center text-xs font-bold text-slate-800">
+                    {item.quantity}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={isMaxStockReached}
+                    onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                    title={isMaxStockReached ? 'Stock maximum atteint' : 'Ajouter'}
+                    className="h-7 w-7 flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                  >
+                    <Plus className="h-3 w-3" />
+                  </button>
+                </div>
+
+                {/* Subtotal & Delete */}
+                <div className="text-right pl-1">
+                  <div className="font-bold text-xs text-slate-900">
+                    {(item.unit_price * item.quantity).toFixed(2)} DH
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeItem(item.product.id)}
+                    className="text-slate-400 hover:text-rose-600 transition-colors"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 
@@ -204,7 +214,7 @@ export function CartPanel() {
             </button>
           </div>
 
-          {/* Discount / Rounding Input */}
+          {/* Discount Input */}
           <div className="flex items-center justify-between gap-2 pt-1">
             <Label htmlFor="discount" className="text-xs text-slate-600 whitespace-nowrap">
               Remise / Tkhfid (DH)
@@ -221,7 +231,7 @@ export function CartPanel() {
             />
           </div>
 
-          {/* Total display */}
+          {/* Total Display */}
           <div className="space-y-1 border-t border-slate-200 pt-2">
             <div className="flex justify-between text-xs text-slate-500">
               <span>Sous-total:</span>
