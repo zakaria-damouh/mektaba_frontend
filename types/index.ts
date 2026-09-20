@@ -18,6 +18,7 @@ export interface Product {
   min_stock_level: number;
   is_service: boolean;
   is_active: boolean;
+  image_url?: string | null; // <-- Added this
   created_at: string;
   updated_at: string;
 }
