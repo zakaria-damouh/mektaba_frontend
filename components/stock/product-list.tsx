@@ -2,7 +2,6 @@
 
 import { Product } from '@/types';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -15,19 +14,20 @@ import {
   AlertTriangle,
   Package,
   Loader2,
-  Plus,
-  Minus,
   Eye,
   Pencil,
   Trash2,
 } from 'lucide-react';
 import { ViewMode } from './product-filters';
+import { QuickStockAdjuster } from './quick-stock-adjuster';
+import { InlinePriceEditor } from './inline-price-editor';
 
 interface ProductListProps {
   products: Product[];
   isLoading: boolean;
   viewMode: ViewMode;
-  onAdjustStock: (id: string, delta: number) => void;
+  onAdjustStock: (params: { id: string; delta?: number; setExact?: number }) => void;
+  onUpdatePrice: (params: { id: string; field: 'sell_price' | 'buy_price'; value: number }) => Promise<void>;
   onViewDetails: (product: Product) => void;
   onEditProduct: (product: Product) => void;
   onDeleteProduct: (product: Product) => void;
@@ -38,6 +38,7 @@ export function ProductList({
   isLoading,
   viewMode,
   onAdjustStock,
+  onUpdatePrice,
   onViewDetails,
   onEditProduct,
   onDeleteProduct,
@@ -112,7 +113,7 @@ export function ProductList({
                 </div>
               </div>
 
-              {/* Info & Actions */}
+              {/* Info & Adjuster */}
               <div className="p-3 flex-1 flex flex-col justify-between">
                 <div>
                   <div
@@ -127,56 +128,43 @@ export function ProductList({
                 </div>
 
                 <div className="mt-2 pt-2 border-t border-slate-100">
-                  <div className="flex items-baseline justify-between">
-                    <span className="text-sm font-black text-slate-900">
-                      {product.sell_price.toFixed(2)} DH
-                    </span>
-                    <span className="text-[10px] text-slate-400">
+                  <div className="flex items-baseline justify-between mb-2">
+                    <InlinePriceEditor
+                      productId={product.id}
+                      field="sell_price"
+                      initialValue={product.sell_price}
+                      onSave={onUpdatePrice}
+                    />
+                    <div className="text-[10px] text-slate-400">
                       Achat: {product.buy_price.toFixed(2)} DH
-                    </span>
+                    </div>
                   </div>
 
-                  {/* Stock counter & Quick Adjust */}
-                  <div className="mt-2 flex items-center justify-between">
-                    <span className="text-[11px] font-semibold text-slate-600">
-                      {product.is_service ? 'Illimité' : `Stock: ${product.stock_quantity}`}
+                  {/* Bulk Stock Adjuster */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-semibold text-slate-500">
+                      Stock:
                     </span>
-
-                    {!product.is_service && (
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          onClick={() => onAdjustStock(product.id, -1)}
-                          disabled={product.stock_quantity <= 0}
-                          className="h-6 w-6 flex items-center justify-center rounded-md border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 disabled:opacity-30"
-                        >
-                          <Minus className="h-3 w-3" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => onAdjustStock(product.id, 1)}
-                          className="h-6 w-6 flex items-center justify-center rounded-md border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
-                        >
-                          <Plus className="h-3 w-3" />
-                        </button>
-                      </div>
-                    )}
+                    <QuickStockAdjuster
+                      product={product}
+                      onAdjustStock={onAdjustStock}
+                    />
                   </div>
 
-                  {/* Edit/Details action icons */}
+                  {/* Actions */}
                   <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-slate-400">
                     <button
                       type="button"
                       onClick={() => onViewDetails(product)}
-                      className="hover:text-indigo-600 p-1"
-                      title="Voir Détails"
+                      className="hover:text-indigo-600 p-1 cursor-pointer"
+                      title="Détails"
                     >
                       <Eye className="h-3.5 w-3.5" />
                     </button>
                     <button
                       type="button"
                       onClick={() => onEditProduct(product)}
-                      className="hover:text-slate-800 p-1"
+                      className="hover:text-slate-800 p-1 cursor-pointer"
                       title="Modifier"
                     >
                       <Pencil className="h-3.5 w-3.5" />
@@ -184,7 +172,7 @@ export function ProductList({
                     <button
                       type="button"
                       onClick={() => onDeleteProduct(product)}
-                      className="hover:text-rose-600 p-1"
+                      className="hover:text-rose-600 p-1 cursor-pointer"
                       title="Supprimer"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -206,90 +194,70 @@ export function ProductList({
     <>
       {/* Mobile view for table mode */}
       <div className="grid grid-cols-1 gap-3 md:hidden">
-        {products.map((product) => {
-          const isLow =
-            !product.is_service &&
-            product.stock_quantity <= product.min_stock_level;
-
-          return (
+        {products.map((product) => (
+          <div
+            key={product.id}
+            className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-xs"
+          >
             <div
-              key={product.id}
-              className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-xs"
+              onClick={() => onViewDetails(product)}
+              className="h-16 w-16 shrink-0 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden cursor-pointer"
             >
+              {product.image_url ? (
+                <img
+                  src={product.image_url}
+                  alt={product.name}
+                  className="h-full w-full object-contain p-1"
+                />
+              ) : (
+                <Package className="h-6 w-6 text-slate-300" />
+              )}
+            </div>
+
+            <div className="flex-1 min-w-0">
               <div
                 onClick={() => onViewDetails(product)}
-                className="h-16 w-16 shrink-0 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden cursor-pointer"
+                className="font-semibold text-slate-900 text-xs truncate cursor-pointer hover:text-indigo-600"
               >
-                {product.image_url ? (
-                  <img
-                    src={product.image_url}
-                    alt={product.name}
-                    className="h-full w-full object-contain p-1"
-                  />
-                ) : (
-                  <Package className="h-6 w-6 text-slate-300" />
-                )}
+                {product.name}
               </div>
-
-              <div className="flex-1 min-w-0">
-                <div
-                  onClick={() => onViewDetails(product)}
-                  className="font-semibold text-slate-900 text-xs truncate cursor-pointer hover:text-indigo-600"
-                >
-                  {product.name}
-                </div>
-                <div className="text-[11px] text-slate-400">
-                  {product.category?.name || 'Général'}
-                </div>
-                <div className="font-bold text-slate-900 text-sm mt-1">
-                  {product.sell_price.toFixed(2)} DH
-                </div>
+              <div className="text-[11px] text-slate-400">
+                {product.category?.name || 'Général'}
               </div>
-
-              <div className="flex flex-col items-end gap-2">
-                {!product.is_service && (
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => onAdjustStock(product.id, -1)}
-                      disabled={product.stock_quantity <= 0}
-                      className="h-7 w-7 flex items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-700 disabled:opacity-30"
-                    >
-                      <Minus className="h-3 w-3" />
-                    </button>
-                    <span className="w-5 text-center text-xs font-bold text-slate-800">
-                      {product.stock_quantity}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => onAdjustStock(product.id, 1)}
-                      className="h-7 w-7 flex items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-slate-700"
-                    >
-                      <Plus className="h-3 w-3" />
-                    </button>
-                  </div>
-                )}
-
-                <div className="flex items-center gap-2 text-slate-400">
-                  <button
-                    type="button"
-                    onClick={() => onEditProduct(product)}
-                    className="hover:text-slate-800"
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onDeleteProduct(product)}
-                    className="hover:text-rose-600"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
+              <div className="mt-1">
+                <InlinePriceEditor
+                  productId={product.id}
+                  field="sell_price"
+                  initialValue={product.sell_price}
+                  onSave={onUpdatePrice}
+                />
               </div>
             </div>
-          );
-        })}
+
+            <div className="flex flex-col items-end gap-2">
+              <QuickStockAdjuster
+                product={product}
+                onAdjustStock={onAdjustStock}
+              />
+              <div className="flex items-center gap-2 text-slate-400">
+                <button
+                  type="button"
+                  onClick={() => onEditProduct(product)}
+                  className="hover:text-slate-800 cursor-pointer"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onDeleteProduct(product)}
+                  className="hover:text-rose-600 cursor-pointer"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Desktop Table View */}
@@ -304,7 +272,8 @@ export function ProductList({
               <TableHead>Prix Achat</TableHead>
               <TableHead>Marge</TableHead>
               <TableHead>Stock Actuel</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="text-right">Ajustement & Réassort</TableHead>
+              <TableHead className="text-right w-24">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -353,18 +322,32 @@ export function ProductList({
                     {product.category?.name || '—'}
                   </TableCell>
 
-                  <TableCell className="font-semibold text-slate-900">
-                    {product.sell_price.toFixed(2)} DH
+                  {/* INLINE EDITABLE SELLING PRICE */}
+                  <TableCell>
+                    <InlinePriceEditor
+                      productId={product.id}
+                      field="sell_price"
+                      initialValue={product.sell_price}
+                      onSave={onUpdatePrice}
+                    />
                   </TableCell>
 
-                  <TableCell className="text-slate-500">
-                    {product.buy_price.toFixed(2)} DH
+                  {/* INLINE EDITABLE BUY PRICE */}
+                  <TableCell>
+                    <InlinePriceEditor
+                      productId={product.id}
+                      field="buy_price"
+                      initialValue={product.buy_price}
+                      onSave={onUpdatePrice}
+                    />
                   </TableCell>
 
+                  {/* Dynamic Margin */}
                   <TableCell className="text-xs font-medium text-emerald-600">
                     +{margin.toFixed(2)} DH
                   </TableCell>
 
+                  {/* Stock Status */}
                   <TableCell>
                     {product.is_service ? (
                       <Badge variant="secondary">Service</Badge>
@@ -383,60 +366,41 @@ export function ProductList({
                     )}
                   </TableCell>
 
-                  {/* Stock Quick +/- AND Action Icons */}
+                  {/* Bulk Restock Controls */}
                   <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-3">
-                      {!product.is_service && (
-                        <div className="flex items-center gap-1 border-r border-slate-200 pr-2">
-                          <Button
-                            size="icon"
-                            variant="outline"
-                            className="h-7 w-7"
-                            onClick={() => onAdjustStock(product.id, -1)}
-                            disabled={product.stock_quantity <= 0}
-                          >
-                            <Minus className="h-3 w-3" />
-                          </Button>
-                          <span className="w-7 text-center text-xs font-bold text-slate-800">
-                            {product.stock_quantity}
-                          </span>
-                          <Button
-                            size="icon"
-                            variant="outline"
-                            className="h-7 w-7"
-                            onClick={() => onAdjustStock(product.id, 1)}
-                          >
-                            <Plus className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      )}
+                    <QuickStockAdjuster
+                      product={product}
+                      onAdjustStock={onAdjustStock}
+                    />
+                  </TableCell>
 
-                      <div className="flex items-center gap-1 text-slate-400">
-                        <button
-                          type="button"
-                          onClick={() => onViewDetails(product)}
-                          className="p-1 hover:text-indigo-600 transition-colors"
-                          title="Détails"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => onEditProduct(product)}
-                          className="p-1 hover:text-slate-800 transition-colors"
-                          title="Modifier"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => onDeleteProduct(product)}
-                          className="p-1 hover:text-rose-600 transition-colors"
-                          title="Supprimer"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
+                  {/* Actions */}
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-1 text-slate-400">
+                      <button
+                        type="button"
+                        onClick={() => onViewDetails(product)}
+                        className="p-1 hover:text-indigo-600 transition-colors cursor-pointer"
+                        title="Détails"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onEditProduct(product)}
+                        className="p-1 hover:text-slate-800 transition-colors cursor-pointer"
+                        title="Modifier"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onDeleteProduct(product)}
+                        className="p-1 hover:text-rose-600 transition-colors cursor-pointer"
+                        title="Supprimer"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                     </div>
                   </TableCell>
                 </TableRow>

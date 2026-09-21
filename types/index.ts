@@ -27,4 +27,5 @@ export interface CartItem {
   product: Product;
   quantity: number;
   unit_price: number;
+  is_custom?: boolean;
 }

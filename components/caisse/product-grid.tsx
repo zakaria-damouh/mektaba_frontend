@@ -5,7 +5,9 @@ import { Product, Category } from '@/types';
 import { useCartStore } from '@/store/use-cart-store';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, AlertTriangle, Package } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Search, AlertTriangle, Package, Zap } from 'lucide-react';
+import { CustomItemDialog } from './custom-item-dialog';
 
 interface ProductGridProps {
   products: Product[];
@@ -16,6 +18,7 @@ interface ProductGridProps {
 export function ProductGrid({ products, categories, isLoading }: ProductGridProps) {
   const [search, setSearch] = useState('');
   const [selectedCat, setSelectedCat] = useState('all');
+  const [isCustomDialogOpen, setIsCustomDialogOpen] = useState(false);
   
   const addItem = useCartStore((state) => state.addItem);
   const cartItems = useCartStore((state) => state.items);
@@ -30,26 +33,44 @@ export function ProductGrid({ products, categories, isLoading }: ProductGridProp
 
   return (
     <div className="flex flex-col h-full space-y-4">
-      {/* Search & Category Tabs */}
+      {/* Vente Libre Modal */}
+      <CustomItemDialog
+        open={isCustomDialogOpen}
+        onOpenChange={setIsCustomDialogOpen}
+      />
+
+      {/* Search Bar + Vente Libre Button */}
       <div className="space-y-2">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <Input
-            placeholder="Rechercher un article ou scanner code-barres..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 bg-white"
-          />
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Input
+              placeholder="Rechercher un article ou scanner code-barres..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 bg-white"
+            />
+          </div>
+
+          {/* Vente Libre Button */}
+          <Button
+            type="button"
+            onClick={() => setIsCustomDialogOpen(true)}
+            className="h-10 gap-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold shadow-xs shrink-0 cursor-pointer"
+          >
+            <Zap className="h-4 w-4" />
+            <span className="hidden sm:inline">Vente Libre</span>
+          </Button>
         </div>
 
-        {/* Category horizontal scroll */}
+        {/* Category scroll bar */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
           <button
             type="button"
             onClick={() => setSelectedCat('all')}
-            className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+            className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold transition-colors cursor-pointer ${
               selectedCat === 'all'
-                ? 'bg-indigo-600 text-white shadow-sm'
+                ? 'bg-indigo-600 text-white shadow-xs'
                 : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
             }`}
           >
@@ -60,9 +81,9 @@ export function ProductGrid({ products, categories, isLoading }: ProductGridProp
               key={c.id}
               type="button"
               onClick={() => setSelectedCat(c.id)}
-              className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+              className={`whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold transition-colors cursor-pointer ${
                 selectedCat === c.id
-                  ? 'bg-indigo-600 text-white shadow-sm'
+                  ? 'bg-indigo-600 text-white shadow-xs'
                   : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
               }`}
             >
@@ -86,7 +107,6 @@ export function ProductGrid({ products, categories, isLoading }: ProductGridProp
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-2.5">
             {filtered.map((product) => {
-              // How many of this item are already in the cart?
               const inCartQty =
                 cartItems.find((item) => item.product.id === product.id)?.quantity || 0;
 
@@ -125,7 +145,7 @@ export function ProductGrid({ products, categories, isLoading }: ProductGridProp
                       </div>
                     )}
 
-                    {/* Badge Overlays */}
+                    {/* Badges */}
                     {product.is_service ? (
                       <span className="absolute top-2 right-2 rounded-md bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5">
                         Service

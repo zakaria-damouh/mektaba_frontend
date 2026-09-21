@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCartStore } from '@/store/use-cart-store';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
@@ -17,6 +17,7 @@ import {
   Building,
   Loader2,
   ShoppingBag,
+  Coins,
 } from 'lucide-react';
 
 export function CartPanel() {
@@ -39,12 +40,27 @@ export function CartPanel() {
 
   const [saleSuccess, setSaleSuccess] = useState<string | null>(null);
 
+  // Change Calculator State
+  const [receivedAmount, setReceivedAmount] = useState<number | ''>('');
+
+  const subtotal = getSubtotal();
+  const total = getTotal();
+
+  // Reset received amount when cart is emptied or payment method changes
+  useEffect(() => {
+    if (items.length === 0 || paymentMethod !== 'cash') {
+      setReceivedAmount('');
+    }
+  }, [items.length, paymentMethod]);
+
   const checkoutMutation = useMutation({
     mutationFn: async () => {
       if (items.length === 0) throw new Error('Le panier est vide');
 
+      // Map catalog items vs custom items
       const payloadItems = items.map((item) => ({
-        product_id: item.product.id,
+        product_id: item.is_custom ? null : item.product.id,
+        custom_name: item.is_custom ? item.product.name : null,
         quantity: item.quantity,
         unit_price: item.unit_price,
       }));
@@ -63,6 +79,7 @@ export function CartPanel() {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       setSaleSuccess(saleId);
       clearCart();
+      setReceivedAmount('');
       setTimeout(() => setSaleSuccess(null), 4000);
     },
     onError: (err: any) => {
@@ -70,11 +87,13 @@ export function CartPanel() {
     },
   });
 
-  const subtotal = getSubtotal();
-  const total = getTotal();
+  // Calculate change due
+  const numReceived = typeof receivedAmount === 'number' ? receivedAmount : 0;
+  const changeDue = numReceived > 0 ? numReceived - total : 0;
+  const isUnderpaid = numReceived > 0 && numReceived < total;
 
   return (
-    <div className="flex flex-col h-full rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+    <div className="flex flex-col h-full rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-slate-100 p-4">
         <div className="flex items-center gap-2">
@@ -84,8 +103,11 @@ export function CartPanel() {
         {items.length > 0 && (
           <button
             type="button"
-            onClick={clearCart}
-            className="text-xs text-rose-600 hover:text-rose-700 font-medium"
+            onClick={() => {
+              clearCart();
+              setReceivedAmount('');
+            }}
+            className="text-xs text-rose-600 hover:text-rose-700 font-medium cursor-pointer"
           >
             Vider
           </button>
@@ -126,18 +148,18 @@ export function CartPanel() {
                     {item.unit_price.toFixed(2)} DH / u
                     {isMaxStockReached && (
                       <span className="ml-2 text-[10px] font-bold text-amber-600">
-                        (Stock max atteint: {item.product.stock_quantity})
+                        (Max: {item.product.stock_quantity})
                       </span>
                     )}
                   </div>
                 </div>
 
-                {/* Quantity Controls with disabled + button when at max */}
+                {/* Quantity Controls */}
                 <div className="flex items-center gap-1">
                   <button
                     type="button"
                     onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                    className="h-7 w-7 flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
+                    className="h-7 w-7 flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 cursor-pointer"
                   >
                     <Minus className="h-3 w-3" />
                   </button>
@@ -148,8 +170,7 @@ export function CartPanel() {
                     type="button"
                     disabled={isMaxStockReached}
                     onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                    title={isMaxStockReached ? 'Stock maximum atteint' : 'Ajouter'}
-                    className="h-7 w-7 flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="h-7 w-7 flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                   >
                     <Plus className="h-3 w-3" />
                   </button>
@@ -163,7 +184,7 @@ export function CartPanel() {
                   <button
                     type="button"
                     onClick={() => removeItem(item.product.id)}
-                    className="text-slate-400 hover:text-rose-600 transition-colors"
+                    className="text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
@@ -182,9 +203,9 @@ export function CartPanel() {
             <button
               type="button"
               onClick={() => setPaymentMethod('cash')}
-              className={`flex items-center justify-center gap-1 rounded-lg py-2 text-xs font-semibold transition-colors border ${
+              className={`flex items-center justify-center gap-1 rounded-lg py-2 text-xs font-semibold transition-colors border cursor-pointer ${
                 paymentMethod === 'cash'
-                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
                   : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
               }`}
             >
@@ -193,9 +214,9 @@ export function CartPanel() {
             <button
               type="button"
               onClick={() => setPaymentMethod('card')}
-              className={`flex items-center justify-center gap-1 rounded-lg py-2 text-xs font-semibold transition-colors border ${
+              className={`flex items-center justify-center gap-1 rounded-lg py-2 text-xs font-semibold transition-colors border cursor-pointer ${
                 paymentMethod === 'card'
-                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
                   : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
               }`}
             >
@@ -204,9 +225,9 @@ export function CartPanel() {
             <button
               type="button"
               onClick={() => setPaymentMethod('transfer')}
-              className={`flex items-center justify-center gap-1 rounded-lg py-2 text-xs font-semibold transition-colors border ${
+              className={`flex items-center justify-center gap-1 rounded-lg py-2 text-xs font-semibold transition-colors border cursor-pointer ${
                 paymentMethod === 'transfer'
-                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
                   : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
               }`}
             >
@@ -214,8 +235,79 @@ export function CartPanel() {
             </button>
           </div>
 
+          {/* ============================================================ */}
+          {/* FEATURE 1: CASH CHANGE CALCULATOR (Only for Cash / Espèces) */}
+          {/* ============================================================ */}
+          {paymentMethod === 'cash' && (
+            <div className="rounded-xl border border-indigo-100 bg-white p-2.5 shadow-2xs space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
+                  <Coins className="h-3.5 w-3.5 text-indigo-600" />
+                  Montant Reçu du client
+                </span>
+                <input
+                  type="number"
+                  placeholder="0.00"
+                  step="0.50"
+                  value={receivedAmount}
+                  onChange={(e) =>
+                    setReceivedAmount(
+                      e.target.value === '' ? '' : parseFloat(e.target.value) || 0
+                    )
+                  }
+                  className="h-7 w-20 text-right text-xs font-bold text-slate-900 rounded-md border border-slate-200 px-1.5 focus:border-indigo-500 focus:outline-hidden"
+                />
+              </div>
+
+              {/* Fast Banknote Buttons (20, 50, 100, 200 DH, Exact) */}
+              <div className="grid grid-cols-5 gap-1">
+                <button
+                  type="button"
+                  onClick={() => setReceivedAmount(total)}
+                  className="h-7 rounded-md border border-slate-200 bg-slate-50 text-[11px] font-bold text-slate-700 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-600 active:scale-95 transition-all cursor-pointer"
+                >
+                  Exact
+                </button>
+                {[20, 50, 100, 200].map((bill) => (
+                  <button
+                    key={bill}
+                    type="button"
+                    onClick={() => setReceivedAmount(bill)}
+                    className={`h-7 rounded-md border text-[11px] font-bold transition-all active:scale-95 cursor-pointer ${
+                      receivedAmount === bill
+                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
+                        : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-600'
+                    }`}
+                  >
+                    {bill}DH
+                  </button>
+                ))}
+              </div>
+
+              {/* Live Change Due Display */}
+              {numReceived > 0 && (
+                <div
+                  className={`flex items-center justify-between rounded-lg p-2 text-xs font-bold transition-all ${
+                    isUnderpaid
+                      ? 'bg-amber-50 text-amber-800 border border-amber-200'
+                      : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                  }`}
+                >
+                  <span>
+                    {isUnderpaid ? '⚠️ Reste à payer :' : '💸 Monnaie à rendre :'}
+                  </span>
+                  <span className="text-sm font-black">
+                    {isUnderpaid
+                      ? `${(total - numReceived).toFixed(2)} DH`
+                      : `${changeDue.toFixed(2)} DH`}
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Discount Input */}
-          <div className="flex items-center justify-between gap-2 pt-1">
+          <div className="flex items-center justify-between gap-2 pt-0.5">
             <Label htmlFor="discount" className="text-xs text-slate-600 whitespace-nowrap">
               Remise / Tkhfid (DH)
             </Label>
@@ -255,7 +347,7 @@ export function CartPanel() {
           <Button
             onClick={() => checkoutMutation.mutate()}
             disabled={checkoutMutation.isPending || items.length === 0}
-            className="w-full h-12 text-base font-bold bg-indigo-600 hover:bg-indigo-700 shadow text-white"
+            className="w-full h-12 text-base font-bold bg-indigo-600 hover:bg-indigo-700 shadow text-white cursor-pointer"
           >
             {checkoutMutation.isPending ? (
               <Loader2 className="h-5 w-5 animate-spin" />

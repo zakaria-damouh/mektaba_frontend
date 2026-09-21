@@ -7,6 +7,7 @@ interface CartState {
   paymentMethod: 'cash' | 'card' | 'transfer';
   notes: string;
   addItem: (product: Product) => void;
+  addCustomItem: (name: string, price: number, quantity?: number) => void; // <-- Added
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   setDiscount: (discount: number) => void;
@@ -28,11 +29,9 @@ export const useCartStore = create<CartState>((set, get) => ({
     set((state) => {
       const existing = state.items.find((item) => item.product.id === product.id);
 
-      // Check available physical stock
       if (!product.is_service) {
         const currentQty = existing ? existing.quantity : 0;
         if (currentQty >= product.stock_quantity) {
-          // Cannot add more than in stock!
           return state;
         }
       }
@@ -48,9 +47,40 @@ export const useCartStore = create<CartState>((set, get) => ({
       }
 
       return {
-        items: [...state.items, { product, quantity: 1, unit_price: product.sell_price }],
+        items: [
+          ...state.items,
+          { product, quantity: 1, unit_price: product.sell_price, is_custom: false },
+        ],
       };
     });
+  },
+
+  // Add custom item without a product database record
+  addCustomItem: (name: string, price: number, quantity = 1) => {
+    const customId = `custom_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+
+    const virtualProduct: Product = {
+      id: customId,
+      name: name.trim() || 'Article Divers',
+      barcode: null,
+      sku: null,
+      category_id: null,
+      buy_price: 0,
+      sell_price: price,
+      stock_quantity: 99999,
+      min_stock_level: 0,
+      is_service: true, // Services bypass stock limits
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    set((state) => ({
+      items: [
+        ...state.items,
+        { product: virtualProduct, quantity, unit_price: price, is_custom: true },
+      ],
+    }));
   },
 
   removeItem: (productId: string) => {
@@ -68,7 +98,6 @@ export const useCartStore = create<CartState>((set, get) => ({
       return;
     }
 
-    // Cap at available stock
     let safeQuantity = quantity;
     if (!currentItem.product.is_service && quantity > currentItem.product.stock_quantity) {
       safeQuantity = currentItem.product.stock_quantity;
