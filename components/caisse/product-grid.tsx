@@ -6,7 +6,7 @@ import { useCartStore } from '@/store/use-cart-store';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Search, AlertTriangle, Package, Zap } from 'lucide-react';
+import { Search, Package, Zap, Clock } from 'lucide-react';
 import { CustomItemDialog } from './custom-item-dialog';
 
 interface ProductGridProps {
@@ -22,6 +22,8 @@ export function ProductGrid({ products, categories, isLoading }: ProductGridProp
   
   const addItem = useCartStore((state) => state.addItem);
   const cartItems = useCartStore((state) => state.items);
+  const getHeldQuantity = useCartStore((state) => state.getHeldQuantity);
+  const getAvailableStock = useCartStore((state) => state.getAvailableStock);
 
   const filtered = products.filter((p) => {
     const matchesSearch =
@@ -52,7 +54,6 @@ export function ProductGrid({ products, categories, isLoading }: ProductGridProp
             />
           </div>
 
-          {/* Vente Libre Button */}
           <Button
             type="button"
             onClick={() => setIsCustomDialogOpen(true)}
@@ -63,7 +64,7 @@ export function ProductGrid({ products, categories, isLoading }: ProductGridProp
           </Button>
         </div>
 
-        {/* Category scroll bar */}
+        {/* Category horizontal scroll bar */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
           <button
             type="button"
@@ -109,13 +110,17 @@ export function ProductGrid({ products, categories, isLoading }: ProductGridProp
             {filtered.map((product) => {
               const inCartQty =
                 cartItems.find((item) => item.product.id === product.id)?.quantity || 0;
+              
+              // Units locked in held carts
+              const heldQty = getHeldQuantity(product.id);
+              
+              // Remaining stock that can actually be sold
+              const availableStock = getAvailableStock(product);
+              const remainingSellable = Math.max(0, availableStock - inCartQty);
 
               const isOut = !product.is_service && product.stock_quantity <= 0;
-              const isMaxInCart =
-                !product.is_service && inCartQty >= product.stock_quantity;
-              const isLow =
-                !product.is_service &&
-                product.stock_quantity <= product.min_stock_level;
+              const isAllHeld = !product.is_service && heldQty >= product.stock_quantity;
+              const isMaxInCart = !product.is_service && remainingSellable <= 0;
 
               const isDisabled = isOut || isMaxInCart;
 
@@ -127,11 +132,11 @@ export function ProductGrid({ products, categories, isLoading }: ProductGridProp
                   disabled={isDisabled}
                   className={`group flex flex-col justify-between text-left rounded-2xl border bg-white overflow-hidden shadow-xs transition-all ${
                     isDisabled
-                      ? 'opacity-50 cursor-not-allowed border-slate-200'
+                      ? 'opacity-50 cursor-not-allowed border-slate-200 bg-slate-50/70'
                       : 'border-slate-200 hover:border-indigo-400 hover:shadow-sm active:scale-[0.98] cursor-pointer'
                   }`}
                 >
-                  {/* Photo Thumbnail */}
+                  {/* Photo Thumbnail & Badges */}
                   <div className="h-28 w-full bg-slate-50 flex items-center justify-center overflow-hidden border-b border-slate-100 relative">
                     {product.image_url ? (
                       <img
@@ -145,7 +150,7 @@ export function ProductGrid({ products, categories, isLoading }: ProductGridProp
                       </div>
                     )}
 
-                    {/* Badges */}
+                    {/* State Badges */}
                     {product.is_service ? (
                       <span className="absolute top-2 right-2 rounded-md bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5">
                         Service
@@ -154,9 +159,14 @@ export function ProductGrid({ products, categories, isLoading }: ProductGridProp
                       <span className="absolute top-2 right-2 rounded-md bg-rose-600 text-white text-[10px] font-bold px-1.5 py-0.5">
                         Épuisé
                       </span>
-                    ) : isMaxInCart ? (
-                      <span className="absolute top-2 right-2 rounded-md bg-amber-600 text-white text-[10px] font-bold px-1.5 py-0.5">
-                        Max atteint ({inCartQty})
+                    ) : isAllHeld ? (
+                      <span className="absolute top-2 right-2 rounded-md bg-amber-600 text-white text-[10px] font-bold px-1.5 py-0.5 flex items-center gap-1">
+                        <Clock className="h-2.5 w-2.5" />
+                        Réservé ({heldQty})
+                      </span>
+                    ) : inCartQty > 0 ? (
+                      <span className="absolute top-2 right-2 rounded-md bg-indigo-600 text-white text-[10px] font-bold px-1.5 py-0.5">
+                        En panier: {inCartQty}
                       </span>
                     ) : null}
                   </div>
@@ -178,13 +188,22 @@ export function ProductGrid({ products, categories, isLoading }: ProductGridProp
                       </span>
 
                       {!product.is_service && (
-                        <span
-                          className={`text-[10px] font-bold ${
-                            isLow ? 'text-amber-600' : 'text-slate-400'
-                          }`}
-                        >
-                          Stock: {product.stock_quantity}
-                        </span>
+                        <div className="text-right">
+                          <span
+                            className={`text-[10px] font-bold ${
+                              remainingSellable <= product.min_stock_level
+                                ? 'text-amber-600'
+                                : 'text-slate-400'
+                            }`}
+                          >
+                            Dispo: {remainingSellable}
+                          </span>
+                          {heldQty > 0 && (
+                            <div className="text-[9px] text-amber-600/90 font-medium">
+                              ({heldQty} réservé)
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>

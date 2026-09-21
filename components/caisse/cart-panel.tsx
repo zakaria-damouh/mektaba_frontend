@@ -11,24 +11,34 @@ import {
   Trash2,
   Plus,
   Minus,
-  CheckCircle2,
   Banknote,
   CreditCard,
   Building,
   Loader2,
   ShoppingBag,
   Coins,
+  PauseCircle,
+  Play,
 } from 'lucide-react';
+import { ReceiptDialog, CompletedSaleData } from './receipt-dialog';
+import { HeldCartsDialog } from './held-carts-dialog';
 
 export function CartPanel() {
   const supabase = createClient();
   const queryClient = useQueryClient();
+
+  // Prevent Next.js SSR hydration mismatch
+  const [hasMounted, setHasMounted] = useState(false);
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   const {
     items,
     discount,
     paymentMethod,
     notes,
+    heldCarts,
     updateQuantity,
     removeItem,
     setDiscount,
@@ -36,9 +46,15 @@ export function CartPanel() {
     clearCart,
     getSubtotal,
     getTotal,
+    holdCurrentCart,
   } = useCartStore();
 
-  const [saleSuccess, setSaleSuccess] = useState<string | null>(null);
+  // Receipt Modal State
+  const [isReceiptOpen, setIsReceiptOpen] = useState(false);
+  const [completedSale, setCompletedSale] = useState<CompletedSaleData | null>(null);
+
+  // Held Carts Modal State
+  const [isHeldCartsOpen, setIsHeldCartsOpen] = useState(false);
 
   // Change Calculator State
   const [receivedAmount, setReceivedAmount] = useState<number | ''>('');
@@ -46,7 +62,6 @@ export function CartPanel() {
   const subtotal = getSubtotal();
   const total = getTotal();
 
-  // Reset received amount when cart is emptied or payment method changes
   useEffect(() => {
     if (items.length === 0 || paymentMethod !== 'cash') {
       setReceivedAmount('');
@@ -57,7 +72,13 @@ export function CartPanel() {
     mutationFn: async () => {
       if (items.length === 0) throw new Error('Le panier est vide');
 
-      // Map catalog items vs custom items
+      const itemsSnapshot = items.map((item) => ({
+        name: item.product.name,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        total: item.unit_price * item.quantity,
+      }));
+
       const payloadItems = items.map((item) => ({
         product_id: item.is_custom ? null : item.product.id,
         custom_name: item.is_custom ? item.product.name : null,
@@ -65,7 +86,7 @@ export function CartPanel() {
         unit_price: item.unit_price,
       }));
 
-      const { data, error } = await supabase.rpc('process_sale', {
+      const { data: saleId, error } = await supabase.rpc('process_sale', {
         p_items: payloadItems,
         p_discount: discount,
         p_payment_method: paymentMethod,
@@ -73,67 +94,152 @@ export function CartPanel() {
       });
 
       if (error) throw error;
-      return data;
+
+      const { data: saleRow } = await supabase
+        .from('sales')
+        .select('receipt_number')
+        .eq('id', saleId)
+        .single();
+
+      return {
+        saleId,
+        receiptNumber: saleRow?.receipt_number || '1',
+        itemsSnapshot,
+        subtotalSnapshot: subtotal,
+        discountSnapshot: discount,
+        totalSnapshot: total,
+        paymentMethodSnapshot: paymentMethod,
+      };
     },
-    onSuccess: (saleId) => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
-      setSaleSuccess(saleId);
+
+      setCompletedSale({
+        receiptNumber: result.receiptNumber,
+        items: result.itemsSnapshot,
+        subtotal: result.subtotalSnapshot,
+        discount: result.discountSnapshot,
+        total: result.totalSnapshot,
+        paymentMethod: result.paymentMethodSnapshot,
+        date: new Date(),
+      });
+
+      setIsReceiptOpen(true);
       clearCart();
       setReceivedAmount('');
-      setTimeout(() => setSaleSuccess(null), 4000);
     },
     onError: (err: any) => {
       alert(err.message || 'Erreur lors de la vente');
     },
   });
 
-  // Calculate change due
   const numReceived = typeof receivedAmount === 'number' ? receivedAmount : 0;
   const changeDue = numReceived > 0 ? numReceived - total : 0;
   const isUnderpaid = numReceived > 0 && numReceived < total;
 
   return (
     <div className="flex flex-col h-full rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
+      {/* Receipt Dialog */}
+      <ReceiptDialog
+        open={isReceiptOpen}
+        onOpenChange={setIsReceiptOpen}
+        saleData={completedSale}
+        onNewSale={() => {
+          setIsReceiptOpen(false);
+          setCompletedSale(null);
+        }}
+      />
+
+      {/* Held Carts Dialog */}
+      <HeldCartsDialog
+        open={isHeldCartsOpen}
+        onOpenChange={setIsHeldCartsOpen}
+      />
+
       {/* Header */}
       <div className="flex items-center justify-between border-b border-slate-100 p-4">
         <div className="flex items-center gap-2">
           <ShoppingBag className="h-5 w-5 text-indigo-600" />
           <h2 className="font-bold text-slate-900 text-base">Panier Actuel</h2>
         </div>
-        {items.length > 0 && (
-          <button
-            type="button"
-            onClick={() => {
-              clearCart();
-              setReceivedAmount('');
-            }}
-            className="text-xs text-rose-600 hover:text-rose-700 font-medium cursor-pointer"
-          >
-            Vider
-          </button>
-        )}
-      </div>
 
-      {/* Success Notification */}
-      {saleSuccess && (
-        <div className="mx-4 mt-3 flex items-center gap-2 rounded-xl bg-emerald-50 p-3 text-sm font-semibold text-emerald-800 border border-emerald-200 animate-in fade-in duration-200">
-          <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
-          <span>Vente enregistrée avec succès!</span>
+        {/* Action buttons: Held carts badge & Hold current cart */}
+        <div className="flex items-center gap-2">
+          {/* Held Carts Indicator Button */}
+          {heldCarts.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setIsHeldCartsOpen(true)}
+              className="inline-flex items-center gap-1 rounded-lg bg-amber-50 px-2 py-1 text-xs font-bold text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors cursor-pointer animate-pulse"
+              title="Paniers en attente"
+            >
+              <PauseCircle className="h-3.5 w-3.5" />
+              <span>{heldCarts.length} en attente</span>
+            </button>
+          )}
+
+          {/* Put on Hold Button */}
+          {items.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                holdCurrentCart();
+                setReceivedAmount('');
+              }}
+              className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-amber-700 hover:bg-amber-50 px-2 py-1 rounded-lg transition-colors cursor-pointer"
+              title="Mettre ce panier en attente pour servir un autre client"
+            >
+              <PauseCircle className="h-3.5 w-3.5 text-amber-600" />
+              <span>En attente</span>
+            </button>
+          )}
+
+          {/* Clear Cart Button */}
+          {items.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                clearCart();
+                setReceivedAmount('');
+              }}
+              className="text-xs text-rose-600 hover:text-rose-700 font-medium cursor-pointer"
+            >
+              Vider
+            </button>
+          )}
         </div>
-      )}
+      </div>
 
       {/* Cart Items List */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {items.length === 0 ? (
+        {!hasMounted ? (
+          <div className="flex flex-col items-center justify-center h-48 text-center text-slate-300">
+            <Loader2 className="h-6 w-6 animate-spin text-indigo-600" />
+            <p className="mt-2 text-xs text-slate-400">Chargement du panier...</p>
+          </div>
+        ) : items.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-center text-slate-400">
             <ShoppingBag className="h-8 w-8 text-slate-300" />
             <p className="mt-2 text-xs">Touchez un article à gauche pour l'ajouter</p>
+            {heldCarts.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setIsHeldCartsOpen(true)}
+                className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-xl border border-indigo-200 hover:bg-indigo-100 transition-all cursor-pointer"
+              >
+                <Play className="h-3.5 w-3.5 fill-current" />
+                Reprendre un panier en attente ({heldCarts.length})
+              </button>
+            )}
           </div>
         ) : (
           items.map((item) => {
+            const available = item.product.is_service
+              ? 99999
+              : useCartStore.getState().getAvailableStock(item.product);
+
             const isMaxStockReached =
-              !item.product.is_service &&
-              item.quantity >= item.product.stock_quantity;
+              !item.product.is_service && item.quantity >= available;
 
             return (
               <div
@@ -148,7 +254,7 @@ export function CartPanel() {
                     {item.unit_price.toFixed(2)} DH / u
                     {isMaxStockReached && (
                       <span className="ml-2 text-[10px] font-bold text-amber-600">
-                        (Max: {item.product.stock_quantity})
+                        (Max dispo atteint: {available})
                       </span>
                     )}
                   </div>
@@ -198,7 +304,7 @@ export function CartPanel() {
       {/* Cart Summary & Checkout */}
       {items.length > 0 && (
         <div className="border-t border-slate-100 bg-slate-50/60 p-4 space-y-3">
-          {/* Payment Method Selector */}
+          {/* Payment Methods */}
           <div className="grid grid-cols-3 gap-1.5">
             <button
               type="button"
@@ -235,9 +341,7 @@ export function CartPanel() {
             </button>
           </div>
 
-          {/* ============================================================ */}
-          {/* FEATURE 1: CASH CHANGE CALCULATOR (Only for Cash / Espèces) */}
-          {/* ============================================================ */}
+          {/* Cash Change Calculator */}
           {paymentMethod === 'cash' && (
             <div className="rounded-xl border border-indigo-100 bg-white p-2.5 shadow-2xs space-y-2">
               <div className="flex items-center justify-between">
@@ -259,7 +363,6 @@ export function CartPanel() {
                 />
               </div>
 
-              {/* Fast Banknote Buttons (20, 50, 100, 200 DH, Exact) */}
               <div className="grid grid-cols-5 gap-1">
                 <button
                   type="button"
@@ -284,7 +387,6 @@ export function CartPanel() {
                 ))}
               </div>
 
-              {/* Live Change Due Display */}
               {numReceived > 0 && (
                 <div
                   className={`flex items-center justify-between rounded-lg p-2 text-xs font-bold transition-all ${
@@ -323,7 +425,7 @@ export function CartPanel() {
             />
           </div>
 
-          {/* Total Display */}
+          {/* Total */}
           <div className="space-y-1 border-t border-slate-200 pt-2">
             <div className="flex justify-between text-xs text-slate-500">
               <span>Sous-total:</span>
