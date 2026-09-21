@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useCartStore } from '@/store/use-cart-store';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,9 +19,11 @@ import {
   Coins,
   PauseCircle,
   Play,
+  BookOpen,
 } from 'lucide-react';
 import { ReceiptDialog, CompletedSaleData } from './receipt-dialog';
 import { HeldCartsDialog } from './held-carts-dialog';
+import { Customer } from '@/types';
 
 export function CartPanel() {
   const supabase = createClient();
@@ -62,6 +64,21 @@ export function CartPanel() {
   const subtotal = getSubtotal();
   const total = getTotal();
 
+  // Customer selection for Credit Sales
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
+
+  const { data: customers = [] } = useQuery<Customer[]>({
+    queryKey: ['customers'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('customers')
+        .select('*')
+        .order('name', { ascending: true });
+      if (error) throw error;
+      return data as Customer[];
+    },
+  });
+
   useEffect(() => {
     if (items.length === 0 || paymentMethod !== 'cash') {
       setReceivedAmount('');
@@ -91,7 +108,10 @@ export function CartPanel() {
         p_discount: discount,
         p_payment_method: paymentMethod,
         p_notes: notes.trim() || null,
+        p_customer_id: paymentMethod === 'credit' ? selectedCustomerId : null,
       });
+
+      
 
       if (error) throw error;
 
@@ -304,8 +324,8 @@ export function CartPanel() {
       {/* Cart Summary & Checkout */}
       {items.length > 0 && (
         <div className="border-t border-slate-100 bg-slate-50/60 p-4 space-y-3">
-          {/* Payment Methods */}
-          <div className="grid grid-cols-3 gap-1.5">
+          {/* Payment Methods (Now with Crédit) */}
+          <div className="grid grid-cols-4 gap-1">
             <button
               type="button"
               onClick={() => setPaymentMethod('cash')}
@@ -315,7 +335,7 @@ export function CartPanel() {
                   : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
               }`}
             >
-              <Banknote className="h-3.5 w-3.5" /> Espèces
+              <Banknote className="h-3 w-3" /> Espèces
             </button>
             <button
               type="button"
@@ -326,7 +346,7 @@ export function CartPanel() {
                   : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
               }`}
             >
-              <CreditCard className="h-3.5 w-3.5" /> Carte
+              <CreditCard className="h-3 w-3" /> Carte
             </button>
             <button
               type="button"
@@ -337,9 +357,42 @@ export function CartPanel() {
                   : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
               }`}
             >
-              <Building className="h-3.5 w-3.5" /> Virement
+              <Building className="h-3 w-3" /> Virement
+            </button>
+            <button
+              type="button"
+              onClick={() => setPaymentMethod('credit')}
+              className={`flex items-center justify-center gap-1 rounded-lg py-2 text-xs font-semibold transition-colors border cursor-pointer ${
+                paymentMethod === 'credit'
+                  ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+              }`}
+            >
+              <BookOpen className="h-3 w-3" /> Crédit
             </button>
           </div>
+
+          {/* Customer Dropdown (Visible only when Crédit is selected) */}
+          {paymentMethod === 'credit' && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-3 space-y-2 animate-in fade-in">
+              <Label className="text-xs font-bold text-amber-900 flex items-center gap-1">
+                <BookOpen className="h-3.5 w-3.5 text-amber-700" />
+                Sélectionner le Client au Carnet *
+              </Label>
+              <select
+                value={selectedCustomerId}
+                onChange={(e) => setSelectedCustomerId(e.target.value)}
+                className="w-full h-9 rounded-md border border-amber-300 bg-white px-3 text-xs font-bold text-slate-900 focus:outline-hidden"
+              >
+                <option value="">-- Choisir un client --</option>
+                {customers.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name} {c.current_debt > 0 ? `(Dette: ${c.current_debt.toFixed(0)} DH)` : '(À jour)'}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Cash Change Calculator */}
           {paymentMethod === 'cash' && (

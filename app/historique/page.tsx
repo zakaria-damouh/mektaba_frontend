@@ -13,13 +13,13 @@ export default function HistoriquePage() {
   const supabase = createClient();
   const [filterPeriod, setFilterPeriod] = useState<DateFilter>('today');
 
-  // Query sales with line items included
+  // Query sales with line items and customer included
   const { data: sales = [], isLoading } = useQuery<SaleWithItems[]>({
     queryKey: ['sales-history', filterPeriod],
     queryFn: async () => {
       let query = supabase
         .from('sales')
-        .select('*, items:sale_items(*)')
+        .select('*, customer:customers(id, name, phone), items:sale_items(*)') 
         .order('created_at', { ascending: false });
 
       const now = new Date();
@@ -42,21 +42,24 @@ export default function HistoriquePage() {
     },
   });
 
-  // Calculate high-level financial metrics
-  const totalRevenue = sales.reduce((acc, s) => acc + s.total_amount, 0);
+  // Calculate metrics ONLY on completed (non-cancelled) sales!
+  const completedSales = sales.filter((s) => s.status !== 'cancelled');
 
-  const totalProfit = sales.reduce((acc, sale) => {
-    const saleProfit = sale.items.reduce((itemAcc, item) => {
-      return itemAcc + (item.unit_sell_price - item.unit_buy_price) * item.quantity;
-    }, 0) - sale.discount_amount;
+  const totalRevenue = completedSales.reduce((acc, s) => acc + s.total_amount, 0);
+
+  const totalProfit = completedSales.reduce((acc, sale) => {
+    const saleProfit =
+      sale.items.reduce((itemAcc, item) => {
+        return itemAcc + (item.unit_sell_price - item.unit_buy_price) * item.quantity;
+      }, 0) - sale.discount_amount;
     return acc + saleProfit;
   }, 0);
 
-  const cashTotal = sales
+  const cashTotal = completedSales
     .filter((s) => s.payment_method === 'cash')
     .reduce((acc, s) => acc + s.total_amount, 0);
 
-  const cardTotal = sales
+  const cardTotal = completedSales
     .filter((s) => s.payment_method === 'card')
     .reduce((acc, s) => acc + s.total_amount, 0);
 
@@ -69,7 +72,7 @@ export default function HistoriquePage() {
             Historique & Clôture
           </h1>
           <p className="text-sm text-slate-500">
-            Consultez les ventes et les marges réalisées
+            Consultez les ventes, marges et tickets de caisse
           </p>
         </div>
 
@@ -78,7 +81,7 @@ export default function HistoriquePage() {
           <button
             type="button"
             onClick={() => setFilterPeriod('today')}
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
               filterPeriod === 'today'
                 ? 'bg-white text-indigo-600 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
@@ -89,7 +92,7 @@ export default function HistoriquePage() {
           <button
             type="button"
             onClick={() => setFilterPeriod('week')}
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
               filterPeriod === 'week'
                 ? 'bg-white text-indigo-600 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
@@ -100,7 +103,7 @@ export default function HistoriquePage() {
           <button
             type="button"
             onClick={() => setFilterPeriod('month')}
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all ${
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
               filterPeriod === 'month'
                 ? 'bg-white text-indigo-600 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
@@ -115,7 +118,7 @@ export default function HistoriquePage() {
       <SalesStats
         totalRevenue={totalRevenue}
         totalProfit={totalProfit}
-        totalSalesCount={sales.length}
+        totalSalesCount={completedSales.length}
         cashTotal={cashTotal}
         cardTotal={cardTotal}
       />

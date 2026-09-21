@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -17,6 +17,7 @@ import {
   MessageCircle,
   Scissors,
   Copy,
+  AlertTriangle,
 } from 'lucide-react';
 
 export interface CompletedSaleData {
@@ -32,13 +33,17 @@ export interface CompletedSaleData {
   total: number;
   paymentMethod: string;
   date: Date;
+  status?: 'completed' | 'cancelled';
+  cancellationReason?: string | null;
+  customerName?: string | null;
+  customerPhone?: string | null;
 }
 
 interface ReceiptDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   saleData: CompletedSaleData | null;
-  onNewSale: () => void;
+  onNewSale?: () => void; // <-- Made optional with ?
 }
 
 export function ReceiptDialog({
@@ -50,7 +55,18 @@ export function ReceiptDialog({
   const [phoneNumber, setPhoneNumber] = useState('');
   const [copiesToPrint, setCopiesToPrint] = useState<1 | 2>(1);
 
+  // Pre-fill phone number if sale had customer phone
+  useEffect(() => {
+    if (saleData?.customerPhone) {
+      setPhoneNumber(saleData.customerPhone);
+    } else {
+      setPhoneNumber('');
+    }
+  }, [saleData]);
+
   if (!saleData) return null;
+
+  const isCancelled = saleData.status === 'cancelled';
 
   const printWithCopies = (copies: 1 | 2) => {
     setCopiesToPrint(copies);
@@ -68,9 +84,15 @@ export function ReceiptDialog({
       minute: '2-digit',
     }).format(saleData.date);
 
-    let message = `📚 *MAKTABA - BON DE VENTE*\n`;
+    let message = isCancelled
+      ? `⚠️ *TICKET ANNULÉ / REMBOURSÉ*\n`
+      : `📚 *MAKTABA - BON DE VENTE*\n`;
+
     message += `Ticket N°: *#${saleData.receiptNumber}*\n`;
     message += `Date: ${formattedDate}\n`;
+    if (saleData.customerName) {
+      message += `Client: *${saleData.customerName}*\n`;
+    }
     message += `--------------------------------\n`;
 
     saleData.items.forEach((item) => {
@@ -84,6 +106,9 @@ export function ReceiptDialog({
     }
     message += `*TOTAL: ${saleData.total.toFixed(2)} DH*\n`;
     message += `Paiement: ${saleData.paymentMethod.toUpperCase()}\n`;
+    if (isCancelled) {
+      message += `*STATUT : TICKET ANNULÉ*\n`;
+    }
     message += `--------------------------------\n`;
     message += `_Merci pour votre visite ! شكراً لزيارتكم_`;
 
@@ -101,6 +126,14 @@ export function ReceiptDialog({
 
   const renderSingleReceipt = (type: 'CLIENT' | 'MAGASIN') => (
     <div className="font-mono text-xs text-slate-800 space-y-2.5 p-3">
+      {/* Cancellation Banner */}
+      {isCancelled && (
+        <div className="text-center font-bold text-xs bg-black text-white py-1 uppercase tracking-wider">
+          *** TICKET ANNULÉ / REMBOURSÉ ***
+        </div>
+      )}
+
+      {/* 2 Copies Header */}
       {copiesToPrint === 2 && (
         <div className="text-center font-bold text-[11px] tracking-wider border-b border-dashed border-slate-300 pb-1">
           {type === 'CLIENT'
@@ -109,6 +142,7 @@ export function ReceiptDialog({
         </div>
       )}
 
+      {/* Header */}
       <div className="text-center space-y-0.5 border-b border-dashed border-slate-300 pb-2">
         <div className="flex items-center justify-center gap-1.5 font-bold text-sm text-slate-900">
           <Store className="h-4 w-4" />
@@ -124,8 +158,14 @@ export function ReceiptDialog({
             minute: '2-digit',
           }).format(saleData.date)}
         </div>
+        {saleData.customerName && (
+          <div className="text-[10px] font-bold text-slate-800">
+            Client : {saleData.customerName}
+          </div>
+        )}
       </div>
 
+      {/* Items list */}
       <div className="space-y-1.5 py-1">
         {saleData.items.map((item, idx) => (
           <div key={idx} className="flex justify-between items-baseline gap-2">
@@ -139,6 +179,7 @@ export function ReceiptDialog({
         ))}
       </div>
 
+      {/* Totals */}
       <div className="border-t border-dashed border-slate-300 pt-2 space-y-1 text-[11px]">
         <div className="flex justify-between text-slate-500">
           <span>Sous-total:</span>
@@ -159,7 +200,12 @@ export function ReceiptDialog({
         </div>
       </div>
 
-      {type === 'CLIENT' ? (
+      {/* Footer */}
+      {isCancelled ? (
+        <div className="text-center text-[10px] text-slate-500 pt-2 border-t border-dashed border-slate-300 italic">
+          Ticket annulé ({saleData.cancellationReason || 'Erreur'})
+        </div>
+      ) : type === 'CLIENT' ? (
         <div className="text-center text-[10px] text-slate-400 pt-2 border-t border-dashed border-slate-300">
           Merci pour votre visite ! شكراً لزيارتكم
         </div>
@@ -177,24 +223,27 @@ export function ReceiptDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md bg-white rounded-3xl p-6 shadow-2xl">
         <DialogHeader>
-          <div className="flex items-center gap-2 text-emerald-600">
-            <CheckCircle2 className="h-6 w-6" />
+          <div className="flex items-center gap-2">
+            {isCancelled ? (
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-100 text-rose-600">
+                <AlertTriangle className="h-5 w-5" />
+              </div>
+            ) : (
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+                <CheckCircle2 className="h-5 w-5" />
+              </div>
+            )}
             <DialogTitle className="text-lg font-bold text-slate-900">
-              Vente Enregistrée
+              {isCancelled ? 'Ticket Annulé' : 'Bon de Vente'} #{saleData.receiptNumber}
             </DialogTitle>
           </div>
         </DialogHeader>
 
-        {/* ========================================================= */}
-        {/* SCREEN PREVIEW WRAPPER (Scrollbar only exists here on screen) */}
-        {/* ========================================================= */}
+        {/* Screen Preview Container */}
         <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50/50 max-h-[42vh] overflow-y-auto">
-          {/* PRINTABLE ELEMENT (No height limits, no scrollbars when printed) */}
           <div id="printable-receipt">
-            {/* Copy 1 */}
             {renderSingleReceipt('CLIENT')}
 
-            {/* Copy 2 (Only if 2 copies requested) */}
             {copiesToPrint === 2 && (
               <>
                 <div className="receipt-page-break my-3 border-b-2 border-dashed border-slate-400 py-1 text-center font-mono text-[10px] text-slate-500 flex items-center justify-center gap-1.5">
@@ -211,7 +260,7 @@ export function ReceiptDialog({
         <div className="space-y-1.5 pt-1">
           <label className="text-xs font-semibold text-slate-700 flex items-center gap-1">
             <MessageCircle className="h-3.5 w-3.5 text-emerald-600" />
-            Numéro WhatsApp du client (Optionnel)
+            Numéro WhatsApp du client
           </label>
           <Input
             placeholder="ex: 06 12 34 56 78"
@@ -254,18 +303,18 @@ export function ReceiptDialog({
           </Button>
         </div>
 
-        {/* Next Customer Button */}
+        {/* Dismiss / Close Button */}
         <Button
           type="button"
           onClick={() => {
             onOpenChange(false);
             setCopiesToPrint(1);
-            onNewSale();
+            if (onNewSale) onNewSale();
           }}
           variant="ghost"
           className="w-full text-slate-500 hover:text-slate-900 font-semibold text-xs cursor-pointer"
         >
-          Passer au client suivant (Nouvelle Vente)
+          {onNewSale ? 'Passer au client suivant (Nouvelle Vente)' : 'Fermer'}
         </Button>
       </DialogContent>
     </Dialog>

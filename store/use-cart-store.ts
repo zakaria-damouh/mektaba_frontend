@@ -2,11 +2,13 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { Product, CartItem } from '@/types';
 
+export type PaymentMethod = 'cash' | 'card' | 'transfer' | 'credit';
+
 export interface HeldCart {
   id: string;
   items: CartItem[];
   discount: number;
-  paymentMethod: 'cash' | 'card' | 'transfer';
+  paymentMethod: PaymentMethod;
   notes: string;
   total: number;
   createdAt: Date;
@@ -15,7 +17,7 @@ export interface HeldCart {
 interface CartState {
   items: CartItem[];
   discount: number;
-  paymentMethod: 'cash' | 'card' | 'transfer';
+  paymentMethod: PaymentMethod; // <-- Updated with 'credit'
   notes: string;
   heldCarts: HeldCart[];
   addItem: (product: Product) => void;
@@ -23,14 +25,14 @@ interface CartState {
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   setDiscount: (discount: number) => void;
-  setPaymentMethod: (method: 'cash' | 'card' | 'transfer') => void;
+  setPaymentMethod: (method: PaymentMethod) => void; // <-- Updated with 'credit'
   setNotes: (notes: string) => void;
   clearCart: () => void;
   getSubtotal: () => number;
   getTotal: () => number;
   getItemQuantityInCart: (productId: string) => number;
-  getHeldQuantity: (productId: string) => number; // Units locked in held carts
-  getAvailableStock: (product: Product) => number; // Stock remaining for new sales
+  getHeldQuantity: (productId: string) => number;
+  getAvailableStock: (product: Product) => number;
   holdCurrentCart: () => void;
   resumeHeldCart: (heldCartId: string) => void;
   deleteHeldCart: (heldCartId: string) => void;
@@ -45,7 +47,6 @@ export const useCartStore = create<CartState>()(
       notes: '',
       heldCarts: [],
 
-      // Calculate how many units are locked in held carts
       getHeldQuantity: (productId: string) => {
         return get().heldCarts.reduce((total, cart) => {
           const item = cart.items.find((i) => i.product.id === productId);
@@ -53,7 +54,6 @@ export const useCartStore = create<CartState>()(
         }, 0);
       },
 
-      // Calculate effective available stock (accounting for held carts)
       getAvailableStock: (product: Product) => {
         if (product.is_service) return 99999;
         const heldQty = get().getHeldQuantity(product.id);
@@ -65,11 +65,9 @@ export const useCartStore = create<CartState>()(
           const existing = state.items.find((item) => item.product.id === product.id);
           const currentInCart = existing ? existing.quantity : 0;
 
-          // Check against available stock (Physical Stock - Held Carts)
           if (!product.is_service) {
             const available = get().getAvailableStock(product);
             if (currentInCart >= available) {
-              // Cannot exceed stock after accounting for held carts!
               return state;
             }
           }
@@ -151,7 +149,7 @@ export const useCartStore = create<CartState>()(
       },
 
       setDiscount: (discount: number) => set({ discount: Math.max(0, discount) }),
-      setPaymentMethod: (paymentMethod) => set({ paymentMethod }),
+      setPaymentMethod: (paymentMethod: PaymentMethod) => set({ paymentMethod }),
       setNotes: (notes: string) => set({ notes }),
       clearCart: () => set({ items: [], discount: 0, notes: '', paymentMethod: 'cash' }),
 

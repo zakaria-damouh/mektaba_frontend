@@ -29,3 +29,22 @@ export interface CartItem {
   unit_price: number;
   is_custom?: boolean;
 }
+
+export interface Customer {
+  id: string;
+  name: string;
+  phone?: string | null;
+  notes?: string | null;
+  current_debt: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DebtPayment {
+  id: string;
+  customer_id: string;
+  amount: number;
+  payment_method: 'cash' | 'card' | 'transfer';
+  notes?: string | null;
+  created_at: string;
+}
