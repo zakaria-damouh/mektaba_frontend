@@ -19,6 +19,8 @@ import {
   Copy,
   AlertTriangle,
 } from 'lucide-react';
+import { printElement } from '@/lib/print';
+
 
 export interface CompletedSaleData {
   receiptNumber: number | string;
@@ -70,10 +72,11 @@ export function ReceiptDialog({
 
   const printWithCopies = (copies: 1 | 2) => {
     setCopiesToPrint(copies);
+    // Wait for state to render the second copy if requested, then print cleanly
     setTimeout(() => {
-      window.print();
+      printElement('printable-receipt');
     }, 80);
-  };
+  };;
 
   const handleWhatsAppShare = () => {
     const formattedDate = new Intl.DateTimeFormat('fr-FR', {
