@@ -24,6 +24,7 @@ import {
   Receipt,
   Download,
 } from 'lucide-react';
+import { exportSalesToExcel } from '@/lib/export-excel';
 
 type DateFilter = 'today' | 'week' | 'month';
 type PaymentFilter = 'all' | 'cash' | 'card' | 'transfer' | 'credit';
@@ -131,7 +132,7 @@ export default function HistoriquePage() {
       week: 'semaine',
       month: 'mois',
     };
-    exportSalesToCSV(sales, labelMap[filterPeriod]);
+    exportSalesToExcel(sales, labelMap[filterPeriod]);
   };
 
   return (
