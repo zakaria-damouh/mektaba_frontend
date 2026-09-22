@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Zap, Plus } from 'lucide-react';
+import { TbBolt, TbPlus, TbSparkles } from 'react-icons/tb';
 
 interface CustomItemDialogProps {
   open: boolean;
@@ -56,44 +56,57 @@ export function CustomItemDialog({ open, onOpenChange }: CustomItemDialogProps) 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md bg-white rounded-2xl p-6">
-        <DialogHeader>
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
-              <Zap className="h-5 w-5" />
+      <DialogContent className="max-w-md bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-neutral-200/90">
+        <DialogHeader className="border-b border-neutral-100 pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 border border-amber-200/60 shadow-xs">
+              <TbBolt className="h-5 w-5 stroke-[2.2]" />
             </div>
-            <DialogTitle className="text-base font-bold text-slate-900">
-              Vente Libre / Article Rapide
-            </DialogTitle>
+            <div>
+              <DialogTitle className="text-base font-black tracking-tight text-neutral-900">
+                Vente Libre / Article Rapide
+              </DialogTitle>
+              <p className="text-[11px] text-neutral-400 font-medium mt-0.5">
+                Ajout direct sans enregistrement au catalogue
+              </p>
+            </div>
           </div>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
           {/* Presets Grid */}
           <div>
-            <span className="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+            <span className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-2">
               Services & Articles Fréquents
             </span>
-            <div className="grid grid-cols-2 gap-1.5">
-              {presets.map((p) => (
-                <button
-                  key={p.label}
-                  type="button"
-                  onClick={() => handleApplyPreset(p.label, p.price)}
-                  className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/70 px-2.5 py-2 text-xs font-medium text-slate-700 hover:border-amber-300 hover:bg-amber-50/50 hover:text-amber-900 transition-all cursor-pointer text-left"
-                >
-                  <span className="truncate">{p.label}</span>
-                  <span className="font-bold text-slate-900 ml-1">
-                    {p.price.toFixed(2)} DH
-                  </span>
-                </button>
-              ))}
+            <div className="grid grid-cols-2 gap-2">
+              {presets.map((p) => {
+                const isSelected = name === p.label && price === p.price.toString();
+
+                return (
+                  <button
+                    key={p.label}
+                    type="button"
+                    onClick={() => handleApplyPreset(p.label, p.price)}
+                    className={`flex items-center justify-between rounded-2xl border p-2.5 text-xs font-semibold transition-all duration-200 cursor-pointer text-left ${
+                      isSelected
+                        ? 'border-emerald-600 bg-emerald-50/70 text-emerald-900 shadow-xs ring-2 ring-emerald-600/10'
+                        : 'border-neutral-200/90 bg-neutral-50/60 text-neutral-700 hover:border-emerald-400 hover:bg-white hover:shadow-xs'
+                    }`}
+                  >
+                    <span className="truncate">{p.label}</span>
+                    <span className="font-black text-neutral-900 ml-1 shrink-0">
+                      {p.price.toFixed(2)} DH
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           {/* Custom Name */}
-          <div className="space-y-1.5 pt-1 border-t border-slate-100">
-            <Label htmlFor="custom_name" className="text-xs">
+          <div className="space-y-1.5 pt-2 border-t border-neutral-100">
+            <Label htmlFor="custom_name" className="text-xs font-bold text-neutral-700">
               Désignation de l'article / Service
             </Label>
             <Input
@@ -101,14 +114,14 @@ export function CustomItemDialog({ open, onOpenChange }: CustomItemDialogProps) 
               placeholder="ex: Article Divers, Impression..."
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="bg-white"
+              className="bg-white rounded-xl border-neutral-200 text-xs focus-visible:ring-emerald-600/10 focus-visible:border-emerald-600"
             />
           </div>
 
           {/* Price & Quantity */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="custom_price" className="text-xs">
+              <Label htmlFor="custom_price" className="text-xs font-bold text-neutral-700">
                 Prix unitaire (DH) *
               </Label>
               <Input
@@ -120,12 +133,12 @@ export function CustomItemDialog({ open, onOpenChange }: CustomItemDialogProps) 
                 placeholder="0.00"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
-                className="bg-white font-bold text-slate-900"
+                className="bg-white rounded-xl border-neutral-200 text-xs font-black text-neutral-900 focus-visible:ring-emerald-600/10 focus-visible:border-emerald-600"
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="custom_qty" className="text-xs">
+              <Label htmlFor="custom_qty" className="text-xs font-bold text-neutral-700">
                 Quantité
               </Label>
               <Input
@@ -135,25 +148,26 @@ export function CustomItemDialog({ open, onOpenChange }: CustomItemDialogProps) 
                 required
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
-                className="bg-white"
+                className="bg-white rounded-xl border-neutral-200 text-xs font-bold text-neutral-800 focus-visible:ring-emerald-600/10 focus-visible:border-emerald-600"
               />
             </div>
           </div>
 
-          {/* Actions */}
-          <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          {/* Footer Actions */}
+          <div className="flex justify-end gap-2 pt-3 border-t border-neutral-100">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
+              className="rounded-full px-5 text-xs font-bold border-neutral-200 hover:bg-neutral-100"
             >
               Annuler
             </Button>
             <Button
               type="submit"
-              className="bg-indigo-600 hover:bg-indigo-700 text-white gap-1.5"
+              className="rounded-full px-6 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-600/20 gap-1.5 cursor-pointer"
             >
-              <Plus className="h-4 w-4" />
+              <TbPlus className="h-4 w-4 stroke-[2.5]" />
               Ajouter au Panier
             </Button>
           </div>

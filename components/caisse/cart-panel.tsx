@@ -2,38 +2,32 @@
 
 import { useState, useEffect } from 'react';
 import { useCartStore } from '@/store/use-cart-store';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
+import { Customer } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-  Trash2,
-  Plus,
-  Minus,
-  Banknote,
-  CreditCard,
-  Building,
-  Loader2,
-  ShoppingBag,
-  Coins,
-  PauseCircle,
-  Play,
-  BookOpen,
-} from 'lucide-react';
+  TbTrash,
+  TbPlus,
+  TbMinus,
+  TbCash,
+  TbCreditCard,
+  TbBuildingBank,
+  TbLoader2,
+  TbShoppingBag,
+  TbCoins,
+  TbPlayerPause,
+  TbPlayerPlay,
+  TbLockOpen,
+} from 'react-icons/tb';
 import { ReceiptDialog, CompletedSaleData } from './receipt-dialog';
 import { HeldCartsDialog } from './held-carts-dialog';
-import { Customer } from '@/types';
 
 export function CartPanel() {
   const supabase = createClient();
   const queryClient = useQueryClient();
-
-  // Prevent Next.js SSR hydration mismatch
-  const [hasMounted, setHasMounted] = useState(false);
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
 
   const {
     items,
@@ -49,20 +43,13 @@ export function CartPanel() {
     getSubtotal,
     getTotal,
     holdCurrentCart,
+    getAvailableStock,
   } = useCartStore();
 
-  // Receipt Modal State
-  const [isReceiptOpen, setIsReceiptOpen] = useState(false);
-  const [completedSale, setCompletedSale] = useState<CompletedSaleData | null>(null);
-
-  // Held Carts Modal State
-  const [isHeldCartsOpen, setIsHeldCartsOpen] = useState(false);
-
-  // Change Calculator State
-  const [receivedAmount, setReceivedAmount] = useState<number | ''>('');
-
-  const subtotal = getSubtotal();
-  const total = getTotal();
+  const [hasMounted, setHasMounted] = useState(false);
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   // Customer selection for Credit Sales
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
@@ -79,6 +66,17 @@ export function CartPanel() {
     },
   });
 
+  // Modal States
+  const [isReceiptOpen, setIsReceiptOpen] = useState(false);
+  const [completedSale, setCompletedSale] = useState<CompletedSaleData | null>(null);
+  const [isHeldCartsOpen, setIsHeldCartsOpen] = useState(false);
+
+  // Change Calculator State
+  const [receivedAmount, setReceivedAmount] = useState<number | ''>('');
+
+  const subtotal = getSubtotal();
+  const total = getTotal();
+
   useEffect(() => {
     if (items.length === 0 || paymentMethod !== 'cash') {
       setReceivedAmount('');
@@ -88,6 +86,10 @@ export function CartPanel() {
   const checkoutMutation = useMutation({
     mutationFn: async () => {
       if (items.length === 0) throw new Error('Le panier est vide');
+
+      if (paymentMethod === 'credit' && !selectedCustomerId) {
+        throw new Error('Veuillez sélectionner un client pour une vente à crédit');
+      }
 
       const itemsSnapshot = items.map((item) => ({
         name: item.product.name,
@@ -111,8 +113,6 @@ export function CartPanel() {
         p_customer_id: paymentMethod === 'credit' ? selectedCustomerId : null,
       });
 
-      
-
       if (error) throw error;
 
       const { data: saleRow } = await supabase
@@ -120,6 +120,8 @@ export function CartPanel() {
         .select('receipt_number')
         .eq('id', saleId)
         .single();
+
+      const selectedCustomer = customers.find((c) => c.id === selectedCustomerId);
 
       return {
         saleId,
@@ -129,10 +131,13 @@ export function CartPanel() {
         discountSnapshot: discount,
         totalSnapshot: total,
         paymentMethodSnapshot: paymentMethod,
+        customerName: selectedCustomer ? selectedCustomer.name : null,
+        customerPhone: selectedCustomer ? selectedCustomer.phone : null,
       };
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
 
       setCompletedSale({
         receiptNumber: result.receiptNumber,
@@ -141,12 +146,15 @@ export function CartPanel() {
         discount: result.discountSnapshot,
         total: result.totalSnapshot,
         paymentMethod: result.paymentMethodSnapshot,
+        customerName: result.customerName,
+        customerPhone: result.customerPhone,
         date: new Date(),
       });
 
       setIsReceiptOpen(true);
       clearCart();
       setReceivedAmount('');
+      setSelectedCustomerId('');
     },
     onError: (err: any) => {
       alert(err.message || 'Erreur lors de la vente');
@@ -158,8 +166,8 @@ export function CartPanel() {
   const isUnderpaid = numReceived > 0 && numReceived < total;
 
   return (
-    <div className="flex flex-col h-full rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
-      {/* Receipt Dialog */}
+    <div className="flex flex-col h-full rounded-3xl border border-neutral-200/90 bg-white shadow-xs overflow-hidden">
+      {/* Receipt Modal */}
       <ReceiptDialog
         open={isReceiptOpen}
         onOpenChange={setIsReceiptOpen}
@@ -170,35 +178,38 @@ export function CartPanel() {
         }}
       />
 
-      {/* Held Carts Dialog */}
+      {/* Held Carts Modal */}
       <HeldCartsDialog
         open={isHeldCartsOpen}
         onOpenChange={setIsHeldCartsOpen}
       />
 
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-slate-100 p-4">
+      {/* ======================================================== */}
+      {/* CART HEADER                                              */}
+      {/* ======================================================== */}
+      <div className="flex items-center justify-between border-b border-neutral-100 p-4 sm:px-5">
         <div className="flex items-center gap-2">
-          <ShoppingBag className="h-5 w-5 text-indigo-600" />
-          <h2 className="font-bold text-slate-900 text-base">Panier Actuel</h2>
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100">
+            <TbShoppingBag className="h-4 w-4 stroke-[2.2]" />
+          </div>
+          <h2 className="font-extrabold text-neutral-900 text-sm tracking-tight">
+            Panier Actuel
+          </h2>
         </div>
 
-        {/* Action buttons: Held carts badge & Hold current cart */}
+        {/* Action buttons: Held badge & Park button */}
         <div className="flex items-center gap-2">
-          {/* Held Carts Indicator Button */}
           {heldCarts.length > 0 && (
             <button
               type="button"
               onClick={() => setIsHeldCartsOpen(true)}
-              className="inline-flex items-center gap-1 rounded-lg bg-amber-50 px-2 py-1 text-xs font-bold text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors cursor-pointer animate-pulse"
-              title="Paniers en attente"
+              className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700 border border-amber-200/80 hover:bg-amber-100 transition-colors cursor-pointer"
             >
-              <PauseCircle className="h-3.5 w-3.5" />
+              <TbPlayerPause className="h-3 w-3 stroke-[2.5]" />
               <span>{heldCarts.length} en attente</span>
             </button>
           )}
 
-          {/* Put on Hold Button */}
           {items.length > 0 && (
             <button
               type="button"
@@ -206,15 +217,14 @@ export function CartPanel() {
                 holdCurrentCart();
                 setReceivedAmount('');
               }}
-              className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-amber-700 hover:bg-amber-50 px-2 py-1 rounded-lg transition-colors cursor-pointer"
-              title="Mettre ce panier en attente pour servir un autre client"
+              className="inline-flex items-center gap-1 text-xs font-bold text-neutral-600 hover:text-amber-700 hover:bg-amber-50 px-2.5 py-1 rounded-full transition-colors cursor-pointer"
+              title="Mettre en attente"
             >
-              <PauseCircle className="h-3.5 w-3.5 text-amber-600" />
-              <span>En attente</span>
+              <TbPlayerPause className="h-3.5 w-3.5 text-amber-600 stroke-[2.2]" />
+              <span className="hidden sm:inline">En attente</span>
             </button>
           )}
 
-          {/* Clear Cart Button */}
           {items.length > 0 && (
             <button
               type="button"
@@ -222,7 +232,7 @@ export function CartPanel() {
                 clearCart();
                 setReceivedAmount('');
               }}
-              className="text-xs text-rose-600 hover:text-rose-700 font-medium cursor-pointer"
+              className="text-xs text-rose-600 hover:text-rose-700 font-bold px-2 py-1 rounded-full hover:bg-rose-50 transition-colors cursor-pointer"
             >
               Vider
             </button>
@@ -230,25 +240,29 @@ export function CartPanel() {
         </div>
       </div>
 
-      {/* Cart Items List */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      {/* ======================================================== */}
+      {/* CART ITEMS LIST                                          */}
+      {/* ======================================================== */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-2.5">
         {!hasMounted ? (
-          <div className="flex flex-col items-center justify-center h-48 text-center text-slate-300">
-            <Loader2 className="h-6 w-6 animate-spin text-indigo-600" />
-            <p className="mt-2 text-xs text-slate-400">Chargement du panier...</p>
+          <div className="flex flex-col items-center justify-center h-48 text-center text-neutral-300">
+            <TbLoader2 className="h-6 w-6 animate-spin text-emerald-600" />
+            <p className="mt-2 text-xs text-neutral-400">Chargement...</p>
           </div>
         ) : items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-48 text-center text-slate-400">
-            <ShoppingBag className="h-8 w-8 text-slate-300" />
-            <p className="mt-2 text-xs">Touchez un article à gauche pour l'ajouter</p>
+          <div className="flex flex-col items-center justify-center h-48 text-center text-neutral-400">
+            <div className="h-12 w-12 rounded-2xl bg-neutral-100 flex items-center justify-center text-neutral-300 mb-2">
+              <TbShoppingBag className="h-6 w-6 stroke-[1.8]" />
+            </div>
+            <p className="text-xs font-medium">Touchez un article à gauche pour l'ajouter</p>
             {heldCarts.length > 0 && (
               <button
                 type="button"
                 onClick={() => setIsHeldCartsOpen(true)}
-                className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-xl border border-indigo-200 hover:bg-indigo-100 transition-all cursor-pointer"
+                className="mt-3 inline-flex items-center gap-1.5 text-xs font-extrabold text-emerald-700 bg-emerald-50 px-3.5 py-1.5 rounded-full border border-emerald-200 hover:bg-emerald-100 transition-all cursor-pointer shadow-2xs"
               >
-                <Play className="h-3.5 w-3.5 fill-current" />
-                Reprendre un panier en attente ({heldCarts.length})
+                <TbPlayerPlay className="h-3.5 w-3.5 fill-current" />
+                Reprendre un panier ({heldCarts.length})
               </button>
             )}
           </div>
@@ -256,63 +270,63 @@ export function CartPanel() {
           items.map((item) => {
             const available = item.product.is_service
               ? 99999
-              : useCartStore.getState().getAvailableStock(item.product);
+              : getAvailableStock(item.product);
 
-            const isMaxStockReached =
+            const isMaxReached =
               !item.product.is_service && item.quantity >= available;
 
             return (
               <div
                 key={item.product.id}
-                className="flex items-center justify-between gap-2 rounded-xl border border-slate-100 p-2.5 bg-slate-50/50"
+                className="flex items-center justify-between gap-2.5 rounded-2xl border border-neutral-100 bg-neutral-50/60 p-2.5 hover:bg-neutral-50 transition-colors"
               >
                 <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-xs text-slate-900 truncate">
+                  <div className="font-bold text-xs text-neutral-900 truncate">
                     {item.product.name}
                   </div>
-                  <div className="text-[11px] text-slate-500">
+                  <div className="text-[11px] text-neutral-400 font-medium">
                     {item.unit_price.toFixed(2)} DH / u
-                    {isMaxStockReached && (
+                    {isMaxReached && (
                       <span className="ml-2 text-[10px] font-bold text-amber-600">
-                        (Max dispo atteint: {available})
+                        (Max: {available})
                       </span>
                     )}
                   </div>
                 </div>
 
-                {/* Quantity Controls */}
-                <div className="flex items-center gap-1">
+                {/* Airbnb Rounded-Full Quantity Controller */}
+                <div className="flex items-center gap-1 bg-white rounded-full border border-neutral-200/80 p-0.5 shadow-2xs">
                   <button
                     type="button"
                     onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                    className="h-7 w-7 flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 cursor-pointer"
+                    className="h-6 w-6 rounded-full flex items-center justify-center text-neutral-600 hover:bg-neutral-100 active:scale-95 cursor-pointer"
                   >
-                    <Minus className="h-3 w-3" />
+                    <TbMinus className="h-3 w-3 stroke-[2.5]" />
                   </button>
-                  <span className="w-6 text-center text-xs font-bold text-slate-800">
+                  <span className="w-6 text-center text-xs font-black text-neutral-900">
                     {item.quantity}
                   </span>
                   <button
                     type="button"
-                    disabled={isMaxStockReached}
+                    disabled={isMaxReached}
                     onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                    className="h-7 w-7 flex items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                    className="h-6 w-6 rounded-full flex items-center justify-center text-neutral-600 hover:bg-neutral-100 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
                   >
-                    <Plus className="h-3 w-3" />
+                    <TbPlus className="h-3 w-3 stroke-[2.5]" />
                   </button>
                 </div>
 
                 {/* Subtotal & Delete */}
                 <div className="text-right pl-1">
-                  <div className="font-bold text-xs text-slate-900">
+                  <div className="font-black text-xs text-neutral-900">
                     {(item.unit_price * item.quantity).toFixed(2)} DH
                   </div>
                   <button
                     type="button"
                     onClick={() => removeItem(item.product.id)}
-                    className="text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
+                    className="text-neutral-300 hover:text-rose-600 transition-colors cursor-pointer mt-0.5"
                   >
-                    <Trash2 className="h-3.5 w-3.5" />
+                    <TbTrash className="h-3.5 w-3.5 stroke-[2]" />
                   </button>
                 </div>
               </div>
@@ -321,68 +335,77 @@ export function CartPanel() {
         )}
       </div>
 
-      {/* Cart Summary & Checkout */}
+      {/* ======================================================== */}
+      {/* CHECKOUT & FINANCIAL FOOTER                              */}
+      {/* ======================================================== */}
       {items.length > 0 && (
-        <div className="border-t border-slate-100 bg-slate-50/60 p-4 space-y-3">
-          {/* Payment Methods (Now with Crédit) */}
-          <div className="grid grid-cols-4 gap-1">
+        <div className="border-t border-neutral-100 bg-neutral-50/40 p-4 space-y-3">
+          {/* Segmented Payment Method Pills */}
+          <div className="grid grid-cols-4 gap-1 p-1 bg-neutral-100 rounded-full">
             <button
               type="button"
               onClick={() => setPaymentMethod('cash')}
-              className={`flex items-center justify-center gap-1 rounded-lg py-2 text-xs font-semibold transition-colors border cursor-pointer ${
+              className={`flex items-center justify-center gap-1 rounded-full py-1.5 text-xs font-bold transition-all cursor-pointer ${
                 paymentMethod === 'cash'
-                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
-                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                  ? 'bg-neutral-900 text-white shadow-xs'
+                  : 'text-neutral-600 hover:text-neutral-900'
               }`}
             >
-              <Banknote className="h-3 w-3" /> Espèces
+              <TbCash className="h-3.5 w-3.5" />
+              <span>Espèces</span>
             </button>
-            <button
-              type="button"
-              onClick={() => setPaymentMethod('card')}
-              className={`flex items-center justify-center gap-1 rounded-lg py-2 text-xs font-semibold transition-colors border cursor-pointer ${
-                paymentMethod === 'card'
-                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
-                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
-              }`}
-            >
-              <CreditCard className="h-3 w-3" /> Carte
-            </button>
-            <button
-              type="button"
-              onClick={() => setPaymentMethod('transfer')}
-              className={`flex items-center justify-center gap-1 rounded-lg py-2 text-xs font-semibold transition-colors border cursor-pointer ${
-                paymentMethod === 'transfer'
-                  ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
-                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
-              }`}
-            >
-              <Building className="h-3 w-3" /> Virement
-            </button>
+
             <button
               type="button"
               onClick={() => setPaymentMethod('credit')}
-              className={`flex items-center justify-center gap-1 rounded-lg py-2 text-xs font-semibold transition-colors border cursor-pointer ${
+              className={`flex items-center justify-center gap-1 rounded-full py-1.5 text-xs font-bold transition-all cursor-pointer ${
                 paymentMethod === 'credit'
-                  ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
-                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+                  ? 'bg-amber-600 text-white shadow-xs'
+                  : 'text-neutral-600 hover:text-neutral-900'
               }`}
             >
-              <BookOpen className="h-3 w-3" /> Crédit
+              <TbLockOpen className="h-3.5 w-3.5" />
+              <span>Crédit</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setPaymentMethod('card')}
+              className={`flex items-center justify-center gap-1 rounded-full py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                paymentMethod === 'card'
+                  ? 'bg-blue-600 text-white shadow-xs'
+                  : 'text-neutral-600 hover:text-neutral-900'
+              }`}
+            >
+              <TbCreditCard className="h-3.5 w-3.5" />
+              <span>Carte</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setPaymentMethod('transfer')}
+              className={`flex items-center justify-center gap-1 rounded-full py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                paymentMethod === 'transfer'
+                  ? 'bg-purple-600 text-white shadow-xs'
+                  : 'text-neutral-600 hover:text-neutral-900'
+              }`}
+            >
+              <TbBuildingBank className="h-3.5 w-3.5" />
+              <span>Virement</span>
             </button>
           </div>
 
-          {/* Customer Dropdown (Visible only when Crédit is selected) */}
+          {/* Customer Dropdown for Credit Sales */}
           {paymentMethod === 'credit' && (
-            <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-3 space-y-2 animate-in fade-in">
+            <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-3 space-y-1.5 animate-in fade-in">
               <Label className="text-xs font-bold text-amber-900 flex items-center gap-1">
-                <BookOpen className="h-3.5 w-3.5 text-amber-700" />
+                <TbLockOpen className="h-3.5 w-3.5 text-amber-700 stroke-[2.2]" />
                 Sélectionner le Client au Carnet *
               </Label>
               <select
                 value={selectedCustomerId}
                 onChange={(e) => setSelectedCustomerId(e.target.value)}
-                className="w-full h-9 rounded-md border border-amber-300 bg-white px-3 text-xs font-bold text-slate-900 focus:outline-hidden"
+                className="w-full h-9 rounded-xl border border-amber-300 bg-white px-3 text-xs font-bold text-neutral-900 focus:outline-hidden"
               >
                 <option value="">-- Choisir un client --</option>
                 {customers.map((c) => (
@@ -396,10 +419,10 @@ export function CartPanel() {
 
           {/* Cash Change Calculator */}
           {paymentMethod === 'cash' && (
-            <div className="rounded-xl border border-indigo-100 bg-white p-2.5 shadow-2xs space-y-2">
+            <div className="rounded-2xl border border-neutral-200/90 bg-white p-3 shadow-2xs space-y-2.5">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
-                  <Coins className="h-3.5 w-3.5 text-indigo-600" />
+                <span className="text-[11px] font-bold text-neutral-700 flex items-center gap-1">
+                  <TbCoins className="h-4 w-4 text-emerald-600 stroke-[2]" />
                   Montant Reçu du client
                 </span>
                 <input
@@ -412,15 +435,16 @@ export function CartPanel() {
                       e.target.value === '' ? '' : parseFloat(e.target.value) || 0
                     )
                   }
-                  className="h-7 w-20 text-right text-xs font-bold text-slate-900 rounded-md border border-slate-200 px-1.5 focus:border-indigo-500 focus:outline-hidden"
+                  className="h-7 w-20 text-right text-xs font-black text-neutral-900 rounded-full border border-neutral-200 px-2 focus:border-emerald-600 focus:outline-hidden"
                 />
               </div>
 
+              {/* Banknote Pills */}
               <div className="grid grid-cols-5 gap-1">
                 <button
                   type="button"
                   onClick={() => setReceivedAmount(total)}
-                  className="h-7 rounded-md border border-slate-200 bg-slate-50 text-[11px] font-bold text-slate-700 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-600 active:scale-95 transition-all cursor-pointer"
+                  className="h-7 rounded-full border border-neutral-200 bg-neutral-50 text-[11px] font-bold text-neutral-700 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 active:scale-95 transition-all cursor-pointer"
                 >
                   Exact
                 </button>
@@ -429,10 +453,10 @@ export function CartPanel() {
                     key={bill}
                     type="button"
                     onClick={() => setReceivedAmount(bill)}
-                    className={`h-7 rounded-md border text-[11px] font-bold transition-all active:scale-95 cursor-pointer ${
+                    className={`h-7 rounded-full border text-[11px] font-black transition-all active:scale-95 cursor-pointer ${
                       receivedAmount === bill
-                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-2xs'
-                        : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-600'
+                        ? 'bg-neutral-900 text-white border-neutral-900 shadow-2xs'
+                        : 'border-neutral-200 bg-neutral-50 text-neutral-700 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700'
                     }`}
                   >
                     {bill}DH
@@ -440,16 +464,17 @@ export function CartPanel() {
                 ))}
               </div>
 
+              {/* Live Change Due Banner */}
               {numReceived > 0 && (
                 <div
-                  className={`flex items-center justify-between rounded-lg p-2 text-xs font-bold transition-all ${
+                  className={`flex items-center justify-between rounded-xl p-2 text-xs font-bold transition-all ${
                     isUnderpaid
-                      ? 'bg-amber-50 text-amber-800 border border-amber-200'
-                      : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                      ? 'bg-amber-50 text-amber-900 border border-amber-200'
+                      : 'bg-emerald-50 text-emerald-900 border border-emerald-200'
                   }`}
                 >
                   <span>
-                    {isUnderpaid ? '⚠️ Reste à payer :' : '💸 Monnaie à rendre :'}
+                    {isUnderpaid ? ' Reste à payer :' : ' Monnaie à rendre :'}
                   </span>
                   <span className="text-sm font-black">
                     {isUnderpaid
@@ -461,9 +486,9 @@ export function CartPanel() {
             </div>
           )}
 
-          {/* Discount Input */}
+          {/* Discount / Tkhfid */}
           <div className="flex items-center justify-between gap-2 pt-0.5">
-            <Label htmlFor="discount" className="text-xs text-slate-600 whitespace-nowrap">
+            <Label htmlFor="discount" className="text-xs font-semibold text-neutral-500 whitespace-nowrap">
               Remise / Tkhfid (DH)
             </Label>
             <Input
@@ -474,38 +499,38 @@ export function CartPanel() {
               placeholder="0.00"
               value={discount || ''}
               onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
-              className="h-8 w-24 text-right text-xs bg-white"
+              className="h-8 w-24 text-right text-xs bg-white rounded-xl border-neutral-200 font-bold"
             />
           </div>
 
-          {/* Total */}
-          <div className="space-y-1 border-t border-slate-200 pt-2">
-            <div className="flex justify-between text-xs text-slate-500">
+          {/* Subtotal & Total */}
+          <div className="space-y-1 border-t border-neutral-200 pt-2">
+            <div className="flex justify-between text-xs text-neutral-400 font-medium">
               <span>Sous-total:</span>
               <span>{subtotal.toFixed(2)} DH</span>
             </div>
             {discount > 0 && (
-              <div className="flex justify-between text-xs text-rose-600 font-medium">
-                <span>Remise appliquée:</span>
+              <div className="flex justify-between text-xs text-rose-600 font-bold">
+                <span>Remise:</span>
                 <span>-{discount.toFixed(2)} DH</span>
               </div>
             )}
             <div className="flex justify-between items-baseline pt-1">
-              <span className="font-bold text-slate-900 text-sm">TOTAL À PAYER:</span>
-              <span className="font-black text-indigo-700 text-xl">
-                {total.toFixed(2)} DH
+              <span className="font-black text-neutral-900 text-sm">TOTAL À PAYER:</span>
+              <span className="font-black text-neutral-900 text-xl">
+                {total.toFixed(2)} <span className="text-xs text-emerald-600">DH</span>
               </span>
             </div>
           </div>
 
-          {/* Checkout Button */}
+          {/* Main Checkout Button */}
           <Button
             onClick={() => checkoutMutation.mutate()}
             disabled={checkoutMutation.isPending || items.length === 0}
-            className="w-full h-12 text-base font-bold bg-indigo-600 hover:bg-indigo-700 shadow text-white cursor-pointer"
+            className="w-full h-12 text-sm font-black bg-emerald-600 hover:bg-emerald-700 text-white rounded-full shadow-md shadow-emerald-600/20 hover:scale-101 active:scale-[0.99] transition-all cursor-pointer"
           >
             {checkoutMutation.isPending ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
+              <TbLoader2 className="h-5 w-5 animate-spin" />
             ) : (
               `Valider la Vente (${total.toFixed(2)} DH)`
             )}

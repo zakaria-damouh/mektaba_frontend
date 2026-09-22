@@ -1,6 +1,6 @@
 'use client';
 
-import { useCartStore, HeldCart } from '@/store/use-cart-store';
+import { useCartStore } from '@/store/use-cart-store';
 import {
   Dialog,
   DialogContent,
@@ -8,7 +8,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { PauseCircle, Play, Trash2, Clock, ShoppingBag } from 'lucide-react';
+import {
+  TbPlayerPause,
+  TbPlayerPlay,
+  TbTrash,
+  TbClock,
+  TbShoppingBag,
+} from 'react-icons/tb';
 
 interface HeldCartsDialogProps {
   open: boolean;
@@ -34,82 +40,85 @@ export function HeldCartsDialog({ open, onOpenChange }: HeldCartsDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md bg-white rounded-3xl p-6 shadow-2xl">
-        <DialogHeader>
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
-              <PauseCircle className="h-5 w-5" />
+      <DialogContent className="max-w-md bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-neutral-200/90">
+        <DialogHeader className="border-b border-neutral-100 pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-50 text-amber-700 border border-amber-200/60 shadow-xs">
+              <TbPlayerPause className="h-5 w-5 stroke-[2.2]" />
             </div>
             <div>
-              <DialogTitle className="text-base font-bold text-slate-900">
+              <DialogTitle className="text-base font-black tracking-tight text-neutral-900">
                 Paniers en Attente ({heldCarts.length})
               </DialogTitle>
-              <p className="text-xs text-slate-400">
+              <p className="text-[11px] text-neutral-400 font-medium mt-0.5">
                 Reprenez la commande d'un client en cours
               </p>
             </div>
           </div>
         </DialogHeader>
 
-        <div className="space-y-3 pt-2 max-h-[60vh] overflow-y-auto">
+        <div className="space-y-3 pt-2 max-h-[60vh] overflow-y-auto pr-1">
           {heldCarts.length === 0 ? (
-            <div className="py-12 text-center text-slate-400">
-              <ShoppingBag className="h-10 w-10 mx-auto text-slate-300 stroke-[1.5]" />
-              <p className="mt-2 text-xs">Aucun panier en attente pour le moment</p>
+            <div className="py-14 text-center text-neutral-400">
+              <div className="h-12 w-12 rounded-2xl bg-neutral-100 flex items-center justify-center text-neutral-300 mx-auto mb-2">
+                <TbShoppingBag className="h-6 w-6 stroke-[1.8]" />
+              </div>
+              <p className="text-xs font-medium">Aucun panier en attente pour le moment</p>
             </div>
           ) : (
             heldCarts.map((cart, index) => (
               <div
                 key={cart.id}
-                className="rounded-2xl border border-slate-200 bg-slate-50/50 p-3.5 space-y-2.5 hover:border-amber-300 transition-colors"
+                className="rounded-2xl border border-neutral-200/90 bg-neutral-50/60 p-4 space-y-3 hover:border-emerald-300 transition-colors"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-sm text-slate-900">
+                    <span className="font-extrabold text-sm text-neutral-900">
                       Panier #{index + 1}
                     </span>
-                    <span className="flex items-center gap-1 text-[11px] text-slate-400">
-                      <Clock className="h-3 w-3" />
+                    <span className="flex items-center gap-1 text-[11px] text-neutral-400 font-medium">
+                      <TbClock className="h-3.5 w-3.5 stroke-[2]" />
                       {formatTime(cart.createdAt)}
                     </span>
                   </div>
-                  <span className="font-black text-indigo-700 text-base">
-                    {cart.total.toFixed(2)} DH
+                  <span className="font-black text-neutral-900 text-base">
+                    {cart.total.toFixed(2)}{' '}
+                    <span className="text-xs text-emerald-600 font-bold">DH</span>
                   </span>
                 </div>
 
-                {/* Items preview */}
-                <div className="text-xs text-slate-600 bg-white rounded-xl p-2 border border-slate-100 space-y-1">
+                {/* Items preview box */}
+                <div className="text-xs text-neutral-600 bg-white rounded-xl p-2.5 border border-neutral-100 space-y-1">
                   {cart.items.map((item, idx) => (
-                    <div key={idx} className="flex justify-between truncate">
-                      <span className="truncate">
+                    <div key={idx} className="flex justify-between items-baseline truncate">
+                      <span className="truncate font-medium">
                         • {item.quantity}x {item.product.name}
                       </span>
-                      <span className="font-semibold text-slate-800 ml-2">
+                      <span className="font-black text-neutral-900 ml-2 shrink-0">
                         {(item.unit_price * item.quantity).toFixed(2)} DH
                       </span>
                     </div>
                   ))}
                 </div>
 
-                {/* Actions */}
+                {/* Action buttons */}
                 <div className="flex items-center justify-between pt-1">
                   <Button
                     size="sm"
                     variant="ghost"
                     onClick={() => deleteHeldCart(cart.id)}
-                    className="h-8 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 gap-1.5 cursor-pointer"
+                    className="h-8 rounded-full px-3 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 gap-1.5 font-bold cursor-pointer"
                   >
-                    <Trash2 className="h-3.5 w-3.5" />
+                    <TbTrash className="h-3.5 w-3.5 stroke-[2.2]" />
                     Supprimer
                   </Button>
 
                   <Button
                     size="sm"
                     onClick={() => handleResume(cart.id)}
-                    className="h-8 text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-bold gap-1.5 cursor-pointer"
+                    className="h-8 rounded-full px-4 text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-black gap-1.5 shadow-sm shadow-emerald-600/20 cursor-pointer"
                   >
-                    <Play className="h-3.5 w-3.5 fill-current" />
+                    <TbPlayerPlay className="h-3.5 w-3.5 fill-current" />
                     Reprendre la commande
                   </Button>
                 </div>
