@@ -2,7 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from 'react-i18next';
 import { createClient } from '@/lib/supabase/client';
+import { switchLanguage } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,6 +23,9 @@ import {
 export default function LoginPage() {
   const router = useRouter();
   const supabase = createClient();
+  const { t, i18n } = useTranslation();
+
+  const currentLang = (i18n.language || 'fr').startsWith('ar') ? 'ar' : 'fr';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -41,7 +46,7 @@ export default function LoginPage() {
     if (signInError) {
       setError(
         signInError.message === 'Invalid login credentials'
-          ? 'Email ou mot de passe incorrect.'
+          ? t('login.invalidCredentials')
           : signInError.message
       );
       setLoading(false);
@@ -53,30 +58,57 @@ export default function LoginPage() {
     router.refresh();
   };
 
+  const handleLanguageChange = (lang: 'fr' | 'ar') => {
+    switchLanguage(lang);
+    router.refresh();
+  };
+
   return (
     <div className="min-h-[88vh] flex items-center justify-center p-4">
       <div className="w-full max-w-md space-y-6">
         {/* ======================================================== */}
-        {/* AIRBNB BRAND IDENTITY HEADER                             */}
+        {/* TOP BAR: BRAND LOGO + LANGUAGE SWITCHER                  */}
         {/* ======================================================== */}
-        <div className="text-center space-y-2">
-          <div className="inline-flex h-16 w-16 items-center justify-center rounded-3xl bg-emerald-600 text-white shadow-lg shadow-emerald-600/30 transition-transform duration-300 hover:scale-105">
-            <TbBuildingStore className="h-8 w-8 stroke-[2.2]" />
-          </div>
-
-          <div className="pt-1">
-            <div className="inline-flex items-center gap-2">
-              <span className="text-2xl font-black tracking-tight text-neutral-900 font-sans">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-md shadow-emerald-600/20">
+              <TbBuildingStore className="h-5 w-5 stroke-[2.2]" />
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xl font-black tracking-tight text-neutral-900 font-sans">
                 maktaba
               </span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-emerald-700 border border-emerald-200/60 shadow-2xs">
-                <TbSparkles className="h-3 w-3" />
+              <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-emerald-700 border border-emerald-200/60 shadow-2xs">
+                <TbSparkles className="h-2.5 w-2.5" />
                 POS
               </span>
             </div>
-            <p className="text-xs text-neutral-400 font-medium mt-1">
-              Connectez-vous pour accéder à la caisse et au stock
-            </p>
+          </div>
+
+          {/* Airbnb Language Switcher Pill [ FR | عربي ] */}
+          <div className="inline-flex items-center rounded-full border border-neutral-200 bg-white p-1 shadow-2xs">
+            <button
+              type="button"
+              onClick={() => handleLanguageChange('fr')}
+              className={`rounded-full px-3 py-1 text-xs font-black transition-all cursor-pointer ${
+                currentLang === 'fr'
+                  ? 'bg-neutral-900 text-white shadow-xs'
+                  : 'text-neutral-400 hover:text-neutral-700'
+              }`}
+            >
+              FR
+            </button>
+            <button
+              type="button"
+              onClick={() => handleLanguageChange('ar')}
+              className={`rounded-full px-3 py-1 text-xs font-black transition-all cursor-pointer font-sans ${
+                currentLang === 'ar'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'text-neutral-400 hover:text-neutral-700'
+              }`}
+            >
+              عربي
+            </button>
           </div>
         </div>
 
@@ -84,6 +116,15 @@ export default function LoginPage() {
         {/* AIRBNB ROUNDED-3XL LOGIN CARD                            */}
         {/* ======================================================== */}
         <div className="rounded-[32px] border border-neutral-200/90 bg-white p-7 sm:p-9 shadow-xl shadow-neutral-900/5 transition-all">
+          <div className="mb-6 space-y-1">
+            <h2 className="text-xl font-black text-neutral-900 tracking-tight">
+              {t('login.submitBtn')}
+            </h2>
+            <p className="text-xs text-neutral-400 font-medium">
+              {t('login.subtitle')}
+            </p>
+          </div>
+
           <form onSubmit={handleLogin} className="space-y-4">
             {/* Error Banner */}
             {error && (
@@ -96,10 +137,10 @@ export default function LoginPage() {
             {/* Email Input */}
             <div className="space-y-1.5">
               <Label htmlFor="email" className="text-xs font-bold text-neutral-700">
-                Adresse Email
+                {t('login.emailLabel')}
               </Label>
               <div className="relative">
-                <TbMail className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400 stroke-[2.2]" />
+                <TbMail className="absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400 stroke-[2.2]" />
                 <Input
                   id="email"
                   type="email"
@@ -107,18 +148,18 @@ export default function LoginPage() {
                   placeholder="gerant@maktaba.ma"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 h-11 bg-white rounded-2xl border-neutral-200 text-xs font-medium focus-visible:ring-emerald-600/10 focus-visible:border-emerald-600 transition-all"
+                  className="ps-10 h-11 bg-white rounded-2xl border-neutral-200 text-xs font-medium focus-visible:ring-emerald-600/10 focus-visible:border-emerald-600 transition-all"
                 />
               </div>
             </div>
 
-            {/* Password Input with Visibility Toggle */}
+            {/* Password Input with Eye Toggle */}
             <div className="space-y-1.5">
               <Label htmlFor="password" className="text-xs font-bold text-neutral-700">
-                Mot de passe
+                {t('login.passwordLabel')}
               </Label>
               <div className="relative">
-                <TbLock className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400 stroke-[2.2]" />
+                <TbLock className="absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400 stroke-[2.2]" />
                 <Input
                   id="password"
                   type={showPassword ? 'text' : 'password'}
@@ -126,12 +167,12 @@ export default function LoginPage() {
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 pr-10 h-11 bg-white rounded-2xl border-neutral-200 text-xs font-medium focus-visible:ring-emerald-600/10 focus-visible:border-emerald-600 transition-all"
+                  className="ps-10 pe-10 h-11 bg-white rounded-2xl border-neutral-200 text-xs font-medium focus-visible:ring-emerald-600/10 focus-visible:border-emerald-600 transition-all font-mono"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 transition-colors cursor-pointer p-1"
+                  className="absolute end-3.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-700 transition-colors cursor-pointer p-1"
                 >
                   {showPassword ? (
                     <TbEyeOff className="h-4 w-4 stroke-[2]" />
@@ -142,7 +183,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Airbnb Pill Submit Button */}
+            {/* Submit Button */}
             <Button
               type="submit"
               disabled={loading}
@@ -151,10 +192,10 @@ export default function LoginPage() {
               {loading ? (
                 <>
                   <TbLoader2 className="mr-2 h-4 w-4 animate-spin stroke-[2.5]" />
-                  Connexion en cours...
+                  {t('login.connecting')}
                 </>
               ) : (
-                'Se Connecter'
+                t('login.submitBtn')
               )}
             </Button>
           </form>
@@ -163,7 +204,7 @@ export default function LoginPage() {
         {/* Trust Badge Footer */}
         <div className="flex items-center justify-center gap-1.5 text-xs text-neutral-400 font-medium">
           <TbShieldCheck className="h-4 w-4 text-emerald-600 stroke-[2]" />
-          <span>Accès sécurisé pour commerçant • Maktaba POS</span>
+          <span>{t('login.secureAccess')}</span>
         </div>
       </div>
     </div>
