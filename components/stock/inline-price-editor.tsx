@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Check, X, Loader2, Pencil } from 'lucide-react';
+import { TbPencil, TbLoader2 } from 'react-icons/tb';
 
 interface InlinePriceEditorProps {
   productId: string;
@@ -22,12 +22,10 @@ export function InlinePriceEditor({
   const [isSaving, setIsSaving] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Sync value when initialValue changes from queries
   useEffect(() => {
     setValue(initialValue.toString());
   }, [initialValue]);
 
-  // Focus input automatically when entering edit mode
   useEffect(() => {
     if (isEditing) {
       inputRef.current?.focus();
@@ -73,23 +71,20 @@ export function InlinePriceEditor({
   if (isEditing) {
     return (
       <div className="inline-flex items-center gap-1">
-        <div className="relative">
-          <input
-            ref={inputRef}
-            type="number"
-            step="0.10"
-            min="0"
-            value={value}
-            disabled={isSaving}
-            onChange={(e) => setValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onBlur={handleSave}
-            className="w-20 h-7 rounded-md border border-indigo-500 bg-white px-1.5 text-xs font-bold text-slate-900 shadow-xs focus:outline-hidden"
-          />
-        </div>
-        <span className="text-[11px] font-semibold text-slate-400">DH</span>
-
-        {isSaving && <Loader2 className="h-3 w-3 animate-spin text-indigo-600" />}
+        <input
+          ref={inputRef}
+          type="number"
+          step="0.10"
+          min="0"
+          value={value}
+          disabled={isSaving}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onBlur={handleSave}
+          className="w-20 h-7 rounded-full border border-emerald-600 bg-white px-2.5 text-xs font-bold text-neutral-900 shadow-sm focus:outline-hidden ring-2 ring-emerald-600/10"
+        />
+        <span className="text-[11px] font-extrabold text-emerald-700">DH</span>
+        {isSaving && <TbLoader2 className="h-3 w-3 animate-spin text-emerald-600" />}
       </div>
     );
   }
@@ -98,19 +93,19 @@ export function InlinePriceEditor({
     <button
       type="button"
       onClick={() => setIsEditing(true)}
-      title="Cliquer pour modifier le prix"
-      className="group inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 -mx-1.5 text-left transition-colors hover:bg-indigo-50/70 cursor-pointer"
+      title="Cliquer pour modifier"
+      className="group inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 -mx-1.5 text-left transition-all hover:bg-emerald-50/80 cursor-pointer"
     >
       <span
         className={`text-xs ${
           field === 'sell_price'
-            ? 'font-bold text-slate-900 group-hover:text-indigo-600'
-            : 'font-semibold text-slate-500 group-hover:text-indigo-600'
+            ? 'font-black text-neutral-900 group-hover:text-emerald-700'
+            : 'font-semibold text-neutral-500 group-hover:text-emerald-700'
         }`}
       >
         {initialValue.toFixed(2)} DH
       </span>
-      <Pencil className="h-2.5 w-2.5 opacity-0 text-indigo-600 transition-opacity group-hover:opacity-100" />
+      <TbPencil className="h-2.5 w-2.5 opacity-0 text-emerald-600 transition-opacity group-hover:opacity-100 stroke-[2.5]" />
     </button>
   );
 }

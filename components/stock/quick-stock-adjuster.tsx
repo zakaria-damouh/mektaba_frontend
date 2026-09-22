@@ -9,7 +9,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Plus, Minus, PackagePlus, Check, ChevronDown } from 'lucide-react';
+import {
+  TbPlus,
+  TbMinus,
+  TbPackage,
+  TbCheck,
+  TbChevronDown,
+} from 'react-icons/tb';
 
 interface QuickStockAdjusterProps {
   product: Product;
@@ -25,7 +31,7 @@ export function QuickStockAdjuster({
   const [exactSet, setExactSet] = useState('');
 
   if (product.is_service) {
-    return <span className="text-xs text-slate-400 italic">Service</span>;
+    return <span className="text-[11px] font-semibold text-neutral-400 italic">Service</span>;
   }
 
   const presets = [5, 10, 20, 50, 100];
@@ -56,68 +62,66 @@ export function QuickStockAdjuster({
   };
 
   return (
-    <div className="inline-flex items-center gap-1">
-      {/* Quick -1 Button */}
-      <Button
-        size="icon"
-        variant="outline"
-        className="h-7 w-7 rounded-lg border-slate-200 text-slate-600 hover:bg-slate-100 disabled:opacity-30"
+    <div className="inline-flex items-center gap-1 bg-neutral-50/80 p-0.5 rounded-full border border-neutral-200/80">
+      {/* Quick -1 */}
+      <button
+        type="button"
+        className="h-6 w-6 rounded-full flex items-center justify-center bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all shadow-2xs"
         onClick={() => onAdjustStock({ id: product.id, delta: -1 })}
         disabled={product.stock_quantity <= 0}
-        title="Retirer 1 unité"
+        title="Retirer 1"
       >
-        <Minus className="h-3 w-3" />
-      </Button>
+        <TbMinus className="h-3 w-3 stroke-[2.5]" />
+      </button>
 
-      {/* Stock Quantity */}
-      <span className="w-8 text-center text-xs font-bold text-slate-900">
+      {/* Stock count */}
+      <span className="w-7 text-center text-xs font-black text-neutral-900">
         {product.stock_quantity}
       </span>
 
-      {/* Quick +1 Button */}
-      <Button
-        size="icon"
-        variant="outline"
-        className="h-7 w-7 rounded-lg border-slate-200 text-slate-600 hover:bg-slate-100"
+      {/* Quick +1 */}
+      <button
+        type="button"
+        className="h-6 w-6 rounded-full flex items-center justify-center bg-white border border-neutral-200 text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 active:scale-95 cursor-pointer transition-all shadow-2xs"
         onClick={() => onAdjustStock({ id: product.id, delta: 1 })}
-        title="Ajouter 1 unité"
+        title="Ajouter 1"
       >
-        <Plus className="h-3 w-3" />
-      </Button>
+        <TbPlus className="h-3 w-3 stroke-[2.5]" />
+      </button>
 
       {/* Bulk Pack Popover */}
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger
-          className="inline-flex items-center justify-center h-7 px-1.5 gap-0.5 rounded-lg border border-indigo-200 bg-indigo-50/50 text-indigo-700 hover:bg-indigo-100 hover:text-indigo-800 text-xs font-medium transition-colors cursor-pointer"
-          title="Réassort par carton / lot"
+          className="inline-flex items-center justify-center h-6 px-2 gap-0.5 rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 text-[10px] font-bold transition-all cursor-pointer shadow-2xs ml-0.5"
+          title="Réassort par lot / carton"
         >
-          <PackagePlus className="h-3.5 w-3.5" />
-          <ChevronDown className="h-2.5 w-2.5 opacity-60" />
+          <TbPackage className="h-3.5 w-3.5 stroke-[2.2]" />
+          <TbChevronDown className="h-2.5 w-2.5 opacity-60" />
         </PopoverTrigger>
 
-        <PopoverContent align="end" className="w-64 p-3 shadow-lg rounded-2xl bg-white">
-          <div className="space-y-3">
+        <PopoverContent align="end" className="w-72 p-4 shadow-xl rounded-3xl bg-white border border-neutral-200">
+          <div className="space-y-3.5">
             <div>
-              <h4 className="font-bold text-xs text-slate-900 leading-tight">
-                Réassort rapide
+              <h4 className="font-extrabold text-xs text-neutral-900 leading-tight">
+                Réassort rapide par lot
               </h4>
-              <p className="text-[11px] text-slate-400 truncate">
+              <p className="text-[11px] text-neutral-400 truncate mt-0.5">
                 {product.name} (Actuel: {product.stock_quantity})
               </p>
             </div>
 
             {/* Presets */}
             <div>
-              <span className="block text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
-                Ajouter un carton / paquet
+              <span className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1.5">
+                Ajouter un paquet
               </span>
-              <div className="grid grid-cols-5 gap-1">
+              <div className="grid grid-cols-5 gap-1.5">
                 {presets.map((amount) => (
                   <button
                     key={amount}
                     type="button"
                     onClick={() => handleApplyPreset(amount)}
-                    className="flex h-8 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-xs font-bold text-slate-700 transition-colors hover:bg-indigo-600 hover:text-white hover:border-indigo-600 active:scale-95"
+                    className="flex h-8 items-center justify-center rounded-xl border border-neutral-200 bg-neutral-50/70 text-xs font-black text-neutral-700 transition-all hover:bg-emerald-600 hover:text-white hover:border-emerald-600 active:scale-95 cursor-pointer"
                   >
                     +{amount}
                   </button>
@@ -125,51 +129,51 @@ export function QuickStockAdjuster({
               </div>
             </div>
 
-            {/* Custom Addition */}
-            <form onSubmit={handleCustomAdd} className="pt-2 border-t border-slate-100">
-              <span className="block text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
-                Ajouter une quantité spécifique
+            {/* Custom Addition Form */}
+            <form onSubmit={handleCustomAdd} className="pt-2 border-t border-neutral-100">
+              <span className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1.5">
+                Quantité personnalisée
               </span>
               <div className="flex gap-1.5">
                 <Input
                   type="number"
                   min="1"
-                  placeholder="ex: 15, 36"
+                  placeholder="ex: 25"
                   value={customAdd}
                   onChange={(e) => setCustomAdd(e.target.value)}
-                  className="h-8 text-xs bg-slate-50"
+                  className="h-8 text-xs bg-neutral-50 rounded-xl"
                 />
                 <Button
                   type="submit"
                   size="sm"
-                  className="h-8 px-2.5 text-xs bg-indigo-600 hover:bg-indigo-700 text-white"
+                  className="h-8 px-3 text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl cursor-pointer"
                 >
                   Ajouter
                 </Button>
               </div>
             </form>
 
-            {/* Exact Setting */}
-            <form onSubmit={handleExactSet} className="pt-2 border-t border-slate-100">
-              <span className="block text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1.5">
+            {/* Set Exact Stock */}
+            <form onSubmit={handleExactSet} className="pt-2 border-t border-neutral-100">
+              <span className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400 mb-1.5">
                 Régler le stock exact en rayon
               </span>
               <div className="flex gap-1.5">
                 <Input
                   type="number"
                   min="0"
-                  placeholder="ex: 8"
+                  placeholder="ex: 12"
                   value={exactSet}
                   onChange={(e) => setExactSet(e.target.value)}
-                  className="h-8 text-xs bg-slate-50"
+                  className="h-8 text-xs bg-neutral-50 rounded-xl"
                 />
                 <Button
                   type="submit"
                   size="sm"
                   variant="outline"
-                  className="h-8 px-2.5 text-xs text-slate-700 border-slate-300 hover:bg-slate-100"
+                  className="h-8 px-3 text-xs text-neutral-700 border-neutral-200 hover:bg-neutral-100 font-bold rounded-xl cursor-pointer"
                 >
-                  <Check className="h-3 w-3 mr-1" /> Fixer
+                  <TbCheck className="h-3 w-3 mr-1 stroke-[3]" /> Fixer
                 </Button>
               </div>
             </form>

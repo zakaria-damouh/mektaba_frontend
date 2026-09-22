@@ -4,21 +4,20 @@ import { Product } from '@/types';
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
-  Package,
-  Barcode,
-  TrendingUp,
-  Boxes,
-  Calendar,
-  Pencil,
-  Trash2,
-  AlertTriangle,
-} from 'lucide-react';
+  TbPackage,
+  TbBarcode,
+  TbTrendingUp,
+  TbBox,
+  TbCalendar,
+  TbPencil,
+  TbTrash,
+  TbAlertTriangle,
+  TbSparkles,
+} from 'react-icons/tb';
 
 interface ProductDetailsDialogProps {
   product: Product | null;
@@ -54,9 +53,9 @@ export function ProductDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md p-0 overflow-hidden">
-        {/* Photo Header */}
-        <div className="h-44 w-full bg-slate-100 flex items-center justify-center relative border-b border-slate-200">
+      <DialogContent className="max-w-md p-0 overflow-hidden bg-white rounded-3xl shadow-2xl border border-neutral-200">
+        {/* Photo Container */}
+        <div className="h-48 w-full bg-neutral-50 flex items-center justify-center relative border-b border-neutral-100">
           {product.image_url ? (
             <img
               src={product.image_url}
@@ -64,19 +63,23 @@ export function ProductDetailsDialog({
               className="h-full w-full object-contain p-4"
             />
           ) : (
-            <Package className="h-16 w-16 text-slate-300" />
+            <TbPackage className="h-16 w-16 text-neutral-300 stroke-[1.5]" />
           )}
 
-          <div className="absolute top-3 left-3">
+          {/* Floating Pill Badge */}
+          <div className="absolute top-3.5 left-3.5">
             {product.is_service ? (
-              <Badge variant="secondary">Service</Badge>
+              <Badge variant="outline" className="rounded-full bg-white/90 backdrop-blur-md text-neutral-800 border-neutral-200 px-3 py-1 font-bold text-xs shadow-xs">
+                <TbSparkles className="h-3.5 w-3.5 text-emerald-600 mr-1" />
+                Service
+              </Badge>
             ) : isLow ? (
-              <Badge variant="destructive" className="bg-amber-500 gap-1 text-white">
-                <AlertTriangle className="h-3 w-3" />
+              <Badge variant="destructive" className="rounded-full bg-amber-500 gap-1 text-white px-3 py-1 font-bold text-xs shadow-xs">
+                <TbAlertTriangle className="h-3.5 w-3.5 stroke-[2.5]" />
                 Stock Faible ({product.stock_quantity})
               </Badge>
             ) : (
-              <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+              <Badge variant="outline" className="rounded-full bg-emerald-50 text-emerald-700 border-emerald-200 px-3 py-1 font-bold text-xs shadow-xs">
                 En Stock ({product.stock_quantity})
               </Badge>
             )}
@@ -86,37 +89,37 @@ export function ProductDetailsDialog({
         {/* Content */}
         <div className="p-6 space-y-4">
           <div>
-            <div className="text-xs text-indigo-600 font-semibold uppercase tracking-wider">
+            <div className="text-[11px] text-emerald-700 font-extrabold uppercase tracking-wider">
               {product.category?.name || 'Sans Catégorie'}
             </div>
-            <h2 className="text-xl font-bold text-slate-900 mt-0.5">
+            <h2 className="text-xl font-black text-neutral-900 mt-0.5 tracking-tight">
               {product.name}
             </h2>
             {product.barcode && (
-              <div className="flex items-center gap-1 text-xs text-slate-400 font-mono mt-1">
-                <Barcode className="h-3.5 w-3.5" />
+              <div className="flex items-center gap-1.5 text-xs text-neutral-400 font-mono mt-1">
+                <TbBarcode className="h-4 w-4" />
                 {product.barcode}
               </div>
             )}
           </div>
 
-          {/* Pricing & Margins Grid */}
-          <div className="grid grid-cols-3 gap-2.5 rounded-xl bg-slate-50 p-3 border border-slate-100 text-center">
+          {/* 3-Column Airbnb Pricing Matrix */}
+          <div className="grid grid-cols-3 gap-2.5 rounded-2xl bg-neutral-50/80 p-3.5 border border-neutral-100 text-center">
             <div>
-              <div className="text-[10px] uppercase font-bold text-slate-400">Prix Vente</div>
-              <div className="text-base font-black text-slate-900 mt-0.5">
+              <div className="text-[10px] uppercase font-bold text-neutral-400">Prix Vente</div>
+              <div className="text-base font-black text-neutral-900 mt-0.5">
                 {product.sell_price.toFixed(2)} <span className="text-[10px]">DH</span>
               </div>
             </div>
             <div>
-              <div className="text-[10px] uppercase font-bold text-slate-400">Prix Achat</div>
-              <div className="text-base font-semibold text-slate-600 mt-0.5">
+              <div className="text-[10px] uppercase font-bold text-neutral-400">Prix Achat</div>
+              <div className="text-base font-semibold text-neutral-500 mt-0.5">
                 {product.buy_price.toFixed(2)} <span className="text-[10px]">DH</span>
               </div>
             </div>
             <div>
-              <div className="text-[10px] uppercase font-bold text-emerald-600 flex items-center justify-center gap-0.5">
-                <TrendingUp className="h-3 w-3" /> Marge
+              <div className="text-[10px] uppercase font-bold text-emerald-700 flex items-center justify-center gap-0.5">
+                <TbTrendingUp className="h-3 w-3 stroke-[2.5]" /> Marge
               </div>
               <div className="text-base font-black text-emerald-600 mt-0.5">
                 +{marginDH.toFixed(2)} <span className="text-[10px]">DH</span>
@@ -129,28 +132,28 @@ export function ProductDetailsDialog({
 
           {/* Business Insights */}
           {!product.is_service && (
-            <div className="space-y-2 text-xs border-t border-slate-100 pt-3 text-slate-600">
+            <div className="space-y-2 text-xs border-t border-neutral-100 pt-3 text-neutral-600">
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-slate-500">
-                  <Boxes className="h-3.5 w-3.5 text-slate-400" />
+                <span className="flex items-center gap-1.5 text-neutral-400 font-medium">
+                  <TbBox className="h-4 w-4" />
                   Valeur totale en rayon (Achat):
                 </span>
-                <span className="font-bold text-slate-900">
+                <span className="font-extrabold text-neutral-900">
                   {totalStockValue.toFixed(2)} DH
                 </span>
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="text-slate-500">Seuil d'alerte minimum:</span>
-                <span className="font-semibold text-slate-800">
+                <span className="text-neutral-400 font-medium">Seuil d'alerte minimum:</span>
+                <span className="font-bold text-neutral-800">
                   {product.min_stock_level} unités
                 </span>
               </div>
             </div>
           )}
 
-          <div className="flex items-center gap-1.5 text-[11px] text-slate-400 border-t border-slate-100 pt-3">
-            <Calendar className="h-3.5 w-3.5" />
+          <div className="flex items-center gap-1.5 text-[11px] text-neutral-400 border-t border-neutral-100 pt-3">
+            <TbCalendar className="h-4 w-4" />
             Ajouté le {formatDate(product.created_at)}
           </div>
 
@@ -163,9 +166,9 @@ export function ProductDetailsDialog({
                 onOpenChange(false);
                 onDelete(product);
               }}
-              className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 gap-1.5"
+              className="rounded-full text-rose-600 hover:text-rose-700 hover:bg-rose-50 border-rose-200 text-xs font-bold gap-1.5 cursor-pointer"
             >
-              <Trash2 className="h-3.5 w-3.5" />
+              <TbTrash className="h-3.5 w-3.5 stroke-[2.2]" />
               Supprimer
             </Button>
 
@@ -175,9 +178,9 @@ export function ProductDetailsDialog({
                 onOpenChange(false);
                 onEdit(product);
               }}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white gap-1.5"
+              className="rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs gap-1.5 shadow-sm shadow-emerald-600/20 cursor-pointer"
             >
-              <Pencil className="h-3.5 w-3.5" />
+              <TbPencil className="h-3.5 w-3.5 stroke-[2.2]" />
               Modifier l'article
             </Button>
           </div>

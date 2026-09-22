@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Product, Category } from '@/types';
 
 import { Button } from '@/components/ui/button';
-import { Plus, Trash2, AlertTriangle, Loader2 } from 'lucide-react';
+import { TbPlus, TbTrash, TbAlertTriangle, TbLoader2 } from 'react-icons/tb';
 
 import { StockKpiCards } from '@/components/stock/stock-kpi-cards';
 import { ProductDialog } from '@/components/stock/product-dialog';
@@ -71,8 +71,7 @@ export default function StockPage() {
     },
   });
 
-  
-// 3. Upgraded Stock Adjust Mutation (Supports Delta & Set Exact)
+  // 3. Quick Stock Adjust Mutation
   const quickStockMutation = useMutation({
     mutationFn: async ({
       id,
@@ -222,24 +221,25 @@ export default function StockPage() {
       {/* Top Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-2xl font-black tracking-tight text-neutral-900">
             Inventaire & Stock
           </h1>
-          <p className="text-sm text-slate-500">
+          <p className="text-xs text-neutral-400 font-medium">
             Suivi des articles, alertes et valeur du magasin
           </p>
         </div>
 
+        {/* Airbnb Pill Action Button */}
         <Button
           onClick={handleOpenAdd}
-          className="gap-2 bg-indigo-600 hover:bg-indigo-700 shadow-sm text-white"
+          className="gap-2 bg-emerald-600 hover:bg-emerald-700 shadow-sm shadow-emerald-600/20 text-white rounded-full px-5 py-2.5 text-xs font-bold transition-all duration-200 hover:scale-102 cursor-pointer"
         >
-          <Plus className="h-4 w-4" />
+          <TbPlus className="h-4 w-4 stroke-[2.5]" />
           Ajouter un Article
         </Button>
       </div>
 
-      {/* 1. UPGRADE A: Interactive KPI Header */}
+      {/* KPI Cards */}
       <StockKpiCards
         totalCount={products.length}
         outOfStockCount={outOfStockCount}
@@ -249,7 +249,7 @@ export default function StockPage() {
         onSelectTab={setActiveTab}
       />
 
-      {/* Add / Edit Modal */}
+      {/* Modals */}
       <ProductDialog
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
@@ -257,7 +257,6 @@ export default function StockPage() {
         productToEdit={productToEdit}
       />
 
-      {/* Product Details Modal */}
       <ProductDetailsDialog
         product={productForDetails}
         open={isDetailsOpen}
@@ -266,26 +265,31 @@ export default function StockPage() {
         onDelete={handleTriggerDelete}
       />
 
-      {/* Delete Confirmation Alert Dialog */}
+      {/* Airbnb Rounded-3xl Delete Alert Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-w-md bg-white rounded-3xl p-6 sm:p-7 border border-neutral-200">
           <AlertDialogHeader>
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-rose-100 text-rose-600">
-                <AlertTriangle className="h-5 w-5" />
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-100 text-rose-600">
+                <TbAlertTriangle className="h-5 w-5 stroke-[2.2]" />
               </div>
-              <AlertDialogTitle>Supprimer l'article ?</AlertDialogTitle>
+              <AlertDialogTitle className="text-base font-black text-neutral-900">
+                Supprimer l'article ?
+              </AlertDialogTitle>
             </div>
-            <AlertDialogDescription className="pt-2 text-slate-600">
+            <AlertDialogDescription className="pt-2 text-xs text-neutral-600 leading-relaxed">
               Êtes-vous sûr de vouloir supprimer{' '}
-              <span className="font-semibold text-slate-900">
+              <span className="font-bold text-neutral-900">
                 "{productToDelete?.name}"
               </span>{' '}
-              ? L'article sera archivé, mais vos anciens tickets resteront intacts.
+              ? L'article sera archivé et retiré de la caisse, mais vos anciens tickets resteront intacts.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteProductMutation.isPending}>
+          <AlertDialogFooter className="pt-3">
+            <AlertDialogCancel
+              disabled={deleteProductMutation.isPending}
+              className="rounded-full px-5 text-xs font-bold border-neutral-200 hover:bg-neutral-100"
+            >
               Annuler
             </AlertDialogCancel>
             <AlertDialogAction
@@ -294,12 +298,12 @@ export default function StockPage() {
                 handleConfirmDelete();
               }}
               disabled={deleteProductMutation.isPending}
-              className="bg-rose-600 hover:bg-rose-700 text-white gap-2"
+              className="rounded-full px-6 text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white gap-1.5 cursor-pointer shadow-sm shadow-rose-600/20"
             >
               {deleteProductMutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <TbLoader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <Trash2 className="h-4 w-4" />
+                <TbTrash className="h-4 w-4 stroke-[2.2]" />
               )}
               Confirmer la suppression
             </AlertDialogAction>
@@ -307,7 +311,7 @@ export default function StockPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Filters Toolbar with Keyboard Shortcut ('/') */}
+      {/* Filters Toolbar */}
       <ProductFilters
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -321,7 +325,7 @@ export default function StockPage() {
         categories={categories}
       />
 
-     {/* Products Display (Table / Squares) */}
+      {/* Products Display */}
       <ProductList
         products={filteredProducts}
         isLoading={isLoading}

@@ -2,8 +2,14 @@
 
 import { useRef, useEffect } from 'react';
 import { Category } from '@/types';
-import { Input } from '@/components/ui/input';
-import { Search, LayoutGrid, List } from 'lucide-react';
+import {
+  TbSearch,
+  TbLayoutGrid,
+  TbList,
+  TbSparkles,
+  TbX,
+  TbCategory,
+} from 'react-icons/tb';
 
 export type FilterTab = 'all' | 'out_of_stock' | 'low_stock' | 'services';
 export type ViewMode = 'table' | 'grid';
@@ -35,7 +41,7 @@ export function ProductFilters({
 }: ProductFiltersProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Keyboard shortcut: Press "/" to instantly focus search bar
+  // Press "/" to jump to search bar
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
@@ -53,64 +59,104 @@ export function ProductFilters({
 
   return (
     <div className="space-y-3">
-      {/* Search, Category, and View Switcher */}
-      <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center justify-between">
-        {/* Search bar */}
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <Input
-            ref={searchInputRef}
-            placeholder="Rechercher nom ou code-barres (Taper '/' pour chercher)..."
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-9 pr-12 bg-white"
-          />
-          <kbd className="hidden md:inline-flex absolute right-3 top-1/2 -translate-y-1/2 h-5 select-none items-center gap-1 rounded border border-slate-200 bg-slate-50 px-1.5 font-mono text-[10px] font-medium text-slate-400">
-            /
-          </kbd>
+      <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
+        {/* ======================================================== */}
+        {/* AIRBNB UNIFIED SEARCH & CATEGORY CAPSULE                 */}
+        {/* ======================================================== */}
+        <div className="flex-1 flex items-center rounded-full border border-neutral-200/90 bg-white p-1.5 pl-4 shadow-sm hover:shadow-md transition-all duration-200 focus-within:border-emerald-600 focus-within:ring-2 focus-within:ring-emerald-600/10">
+          {/* Search Icon & Input */}
+          <div className="flex items-center flex-1 gap-2 min-w-0">
+            <TbSearch className="h-4 w-4 shrink-0 text-neutral-400 stroke-[2.2]" />
+            <input
+              ref={searchInputRef}
+              type="text"
+              placeholder="Rechercher nom ou code-barres (Tapez '/' pour chercher)..."
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="w-full bg-transparent text-xs font-medium text-neutral-800 placeholder-neutral-400 focus:outline-hidden"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => onSearchChange('')}
+                className="p-1 text-neutral-400 hover:text-neutral-600 cursor-pointer"
+              >
+                <TbX className="h-3.5 w-3.5" />
+              </button>
+            )}
+            <kbd className="hidden md:inline-flex h-5 select-none items-center rounded-full border border-neutral-200 bg-neutral-50 px-2 font-mono text-[10px] font-bold text-neutral-400">
+              /
+            </kbd>
+          </div>
+
+          {/* Subtle Vertical Divider */}
+          <div className="h-6 w-[1px] bg-neutral-200 mx-2 shrink-0 hidden sm:block" />
+
+          {/* Integrated Category Dropdown */}
+          <div className="relative shrink-0 hidden sm:flex items-center gap-1.5 pr-2">
+            <TbCategory className="h-3.5 w-3.5 text-neutral-400 stroke-[2]" />
+            <select
+              value={selectedCategory}
+              onChange={(e) => onCategoryChange(e.target.value)}
+              className="bg-transparent text-xs font-semibold text-neutral-700 focus:outline-hidden cursor-pointer pr-1"
+            >
+              <option value="all">Toutes les catégories</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
-        {/* Category Dropdown */}
-        <select
-          value={selectedCategory}
-          onChange={(e) => onCategoryChange(e.target.value)}
-          className="h-10 rounded-md border border-input bg-white px-3 py-1 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500"
-        >
-          <option value="all">Toutes les catégories</option>
-          {categories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+        {/* Mobile-only Category select */}
+        <div className="sm:hidden">
+          <select
+            value={selectedCategory}
+            onChange={(e) => onCategoryChange(e.target.value)}
+            className="w-full h-10 rounded-full border border-neutral-200 bg-white px-4 text-xs font-semibold text-neutral-700 shadow-xs"
+          >
+            <option value="all">Toutes les catégories</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
-        {/* Services Tab Pill & View Toggle */}
-        <div className="flex items-center gap-2">
+        {/* ======================================================== */}
+        {/* RIGHT CONTROLS: Services Filter Pill & View Switcher     */}
+        {/* ======================================================== */}
+        <div className="flex items-center justify-end gap-2.5 shrink-0">
+          {/* Services Filter Pill */}
           <button
             type="button"
             onClick={() => onTabChange(activeTab === 'services' ? 'all' : 'services')}
-            className={`h-10 rounded-xl px-3 text-xs font-semibold transition-colors border ${
+            className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold transition-all duration-200 border cursor-pointer ${
               activeTab === 'services'
-                ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'
+                ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm shadow-emerald-600/30'
+                : 'bg-white text-neutral-600 border-neutral-200/90 shadow-xs hover:border-neutral-300 hover:shadow-sm'
             }`}
           >
-            Services ({servicesCount})
+            <TbSparkles className={`h-3.5 w-3.5 ${activeTab === 'services' ? 'text-white' : 'text-emerald-600'}`} />
+            <span>Services ({servicesCount})</span>
           </button>
 
-          {/* View Mode Toggle */}
-          <div className="inline-flex h-10 items-center rounded-xl bg-slate-100 p-1 border border-slate-200">
+          {/* Segmented View Mode Capsule */}
+          <div className="inline-flex items-center rounded-full border border-neutral-200/90 bg-white p-1 shadow-xs">
             <button
               type="button"
               onClick={() => onViewModeChange('table')}
               title="Vue Tableau"
-              className={`flex items-center gap-1.5 h-full rounded-lg px-2.5 text-xs font-medium transition-all ${
+              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all duration-200 cursor-pointer ${
                 viewMode === 'table'
-                  ? 'bg-white text-indigo-600 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-900'
+                  ? 'bg-neutral-900 text-white shadow-xs'
+                  : 'text-neutral-500 hover:text-neutral-900'
               }`}
             >
-              <List className="h-4 w-4" />
+              <TbList className="h-4 w-4 stroke-[2.2]" />
               <span className="hidden sm:inline">Tableau</span>
             </button>
 
@@ -118,13 +164,13 @@ export function ProductFilters({
               type="button"
               onClick={() => onViewModeChange('grid')}
               title="Vue Carrés"
-              className={`flex items-center gap-1.5 h-full rounded-lg px-2.5 text-xs font-medium transition-all ${
+              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all duration-200 cursor-pointer ${
                 viewMode === 'grid'
-                  ? 'bg-white text-indigo-600 shadow-xs'
-                  : 'text-slate-500 hover:text-slate-900'
+                  ? 'bg-neutral-900 text-white shadow-xs'
+                  : 'text-neutral-500 hover:text-neutral-900'
               }`}
             >
-              <LayoutGrid className="h-4 w-4" />
+              <TbLayoutGrid className="h-4 w-4 stroke-[2.2]" />
               <span className="hidden sm:inline">Carrés</span>
             </button>
           </div>
