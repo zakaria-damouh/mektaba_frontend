@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Product, Category } from '@/types';
 import { useCartStore } from '@/store/use-cart-store';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,7 @@ interface ProductGridProps {
 }
 
 export function ProductGrid({ products, categories, isLoading }: ProductGridProps) {
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
   const [selectedCat, setSelectedCat] = useState('all');
   const [isCustomDialogOpen, setIsCustomDialogOpen] = useState(false);
@@ -46,17 +48,14 @@ export function ProductGrid({ products, categories, isLoading }: ProductGridProp
         onOpenChange={setIsCustomDialogOpen}
       />
 
-      {/* ======================================================== */}
-      {/* SEARCH CAPSULE & VENTE LIBRE BUTTON                      */}
-      {/* ======================================================== */}
+      {/* Search & Vente Libre row */}
       <div className="space-y-2.5">
         <div className="flex items-center gap-2">
-          {/* Airbnb Capsule Search Input */}
-          <div className="flex-1 flex items-center rounded-full border border-neutral-200/90 bg-white p-1 pl-4 shadow-xs hover:shadow-sm transition-all focus-within:border-emerald-600 focus-within:ring-2 focus-within:ring-emerald-600/10">
+          <div className="flex-1 flex items-center rounded-full border border-neutral-200/90 bg-white p-1 px-4 shadow-xs hover:shadow-sm transition-all focus-within:border-emerald-600 focus-within:ring-2 focus-within:ring-emerald-600/10">
             <TbSearch className="h-4 w-4 shrink-0 text-neutral-400 stroke-[2.2]" />
             <input
               type="text"
-              placeholder="Rechercher un article ou scanner code-barres..."
+              placeholder={t('caisse.searchPlaceholder')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full bg-transparent px-2 text-xs font-medium text-neutral-800 placeholder-neutral-400 focus:outline-hidden"
@@ -65,27 +64,24 @@ export function ProductGrid({ products, categories, isLoading }: ProductGridProp
               <button
                 type="button"
                 onClick={() => setSearch('')}
-                className="p-1 text-neutral-400 hover:text-neutral-600 cursor-pointer mr-1"
+                className="p-1 text-neutral-400 hover:text-neutral-600 cursor-pointer"
               >
                 <TbX className="h-3.5 w-3.5" />
               </button>
             )}
           </div>
 
-          {/* Vente Libre Pill Button */}
           <Button
             type="button"
             onClick={() => setIsCustomDialogOpen(true)}
             className="h-10 gap-1.5 rounded-full bg-amber-500 hover:bg-amber-600 text-white font-black text-xs shadow-xs hover:shadow-md transition-all hover:scale-102 shrink-0 px-4 cursor-pointer"
           >
             <TbBolt className="h-4 w-4 stroke-[2.5]" />
-            <span className="hidden sm:inline">Vente Libre</span>
+            <span className="hidden sm:inline">{t('caisse.venteLibre')}</span>
           </Button>
         </div>
 
-        {/* ======================================================== */}
-        {/* AIRBNB HORIZONTAL CATEGORY PILL CHIPS                    */}
-        {/* ======================================================== */}
+        {/* Category Pills */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
           <button
             type="button"
@@ -96,7 +92,7 @@ export function ProductGrid({ products, categories, isLoading }: ProductGridProp
                 : 'bg-white text-neutral-600 border border-neutral-200/90 hover:border-neutral-300 hover:bg-neutral-50'
             }`}
           >
-            Tous
+            {t('caisse.allCategories')}
           </button>
           {categories.map((c) => (
             <button
@@ -115,14 +111,12 @@ export function ProductGrid({ products, categories, isLoading }: ProductGridProp
         </div>
       </div>
 
-      {/* ======================================================== */}
-      {/* AIRBNB-STYLE PRODUCT CARDS GRID                          */}
-      {/* ======================================================== */}
+      {/* Product Cards Grid */}
       <div className="flex-1 overflow-y-auto pr-1">
         {isLoading ? (
           <div className="flex h-64 items-center justify-center">
             <p className="text-xs font-semibold text-neutral-400">
-              Chargement des articles...
+              {t('common.loading')}
             </p>
           </div>
         ) : filtered.length === 0 ? (
@@ -130,7 +124,7 @@ export function ProductGrid({ products, categories, isLoading }: ProductGridProp
             <div className="h-12 w-12 rounded-2xl bg-neutral-100 flex items-center justify-center text-neutral-400 mb-2">
               <TbPackage className="h-6 w-6 stroke-[1.8]" />
             </div>
-            <p className="text-xs font-bold text-neutral-700">Aucun article trouvé</p>
+            <p className="text-xs font-bold text-neutral-700">{t('stock.noProductsFound')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-3.5">
@@ -154,13 +148,13 @@ export function ProductGrid({ products, categories, isLoading }: ProductGridProp
                   type="button"
                   onClick={() => !isDisabled && addItem(product)}
                   disabled={isDisabled}
-                  className={`group flex flex-col justify-between text-left rounded-3xl border bg-white overflow-hidden shadow-xs transition-all duration-300 ${
+                  className={`group flex flex-col justify-between text-start rounded-3xl border bg-white overflow-hidden shadow-xs transition-all duration-300 ${
                     isDisabled
                       ? 'opacity-45 cursor-not-allowed border-neutral-200 bg-neutral-50/70'
                       : 'border-neutral-200/90 hover:border-emerald-500 hover:shadow-lg active:scale-[0.98] cursor-pointer hover:-translate-y-1'
                   }`}
                 >
-                  {/* Photo Area (Aspect Square) */}
+                  {/* Photo Area */}
                   <div className="relative aspect-square w-full bg-neutral-50 flex items-center justify-center overflow-hidden border-b border-neutral-100">
                     {product.image_url ? (
                       <img
@@ -172,25 +166,25 @@ export function ProductGrid({ products, categories, isLoading }: ProductGridProp
                       <TbPackage className="h-10 w-10 text-neutral-300 stroke-[1.5]" />
                     )}
 
-                    {/* Floating Pill Badges */}
-                    <div className="absolute top-2.5 left-2.5 flex flex-col gap-1">
+                    {/* Badges */}
+                    <div className="absolute top-2.5 start-2.5 flex flex-col gap-1">
                       {product.is_service ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-white/95 backdrop-blur-md px-2.5 py-0.5 text-[10px] font-extrabold text-neutral-800 border border-neutral-200/60 shadow-xs">
                           <TbSparkles className="h-3 w-3 text-emerald-600" />
-                          Service
+                          {t('caisse.serviceBadge')}
                         </span>
                       ) : isOut ? (
                         <span className="rounded-full bg-rose-600 text-white text-[10px] font-black px-2.5 py-0.5 shadow-xs">
-                          Épuisé
+                          {t('caisse.outOfStockBadge')}
                         </span>
                       ) : isAllHeld ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-amber-500 text-white text-[10px] font-black px-2.5 py-0.5 shadow-xs">
                           <TbClock className="h-3 w-3 stroke-[2.5]" />
-                          Réservé ({heldQty})
+                          {t('caisse.reservedBadge')} ({heldQty})
                         </span>
                       ) : inCartQty > 0 ? (
                         <span className="rounded-full bg-emerald-600 text-white text-[10px] font-black px-2.5 py-0.5 shadow-xs shadow-emerald-600/30">
-                          x{inCartQty} en panier
+                          x{inCartQty} {t('caisse.inCartBadge')}
                         </span>
                       ) : null}
                     </div>
@@ -203,17 +197,18 @@ export function ProductGrid({ products, categories, isLoading }: ProductGridProp
                         {product.name}
                       </div>
                       <div className="text-[10px] font-semibold text-neutral-400 mt-1 truncate">
-                        {product.category?.name || 'Général'}
+                        {product.category?.name || t('stock.uncategorized')}
                       </div>
                     </div>
 
                     <div className="mt-3 flex items-center justify-between pt-2 border-t border-neutral-100">
                       <span className="text-sm font-black text-neutral-900">
-                        {product.sell_price.toFixed(2)} <span className="text-[10px] font-bold text-emerald-600">DH</span>
+                        {product.sell_price.toFixed(2)}{' '}
+                        <span className="text-[10px] font-bold text-emerald-600">{t('common.dh')}</span>
                       </span>
 
                       {!product.is_service && (
-                        <div className="text-right">
+                        <div className="text-end">
                           <span
                             className={`text-[10px] font-extrabold ${
                               remainingSellable <= product.min_stock_level
@@ -221,7 +216,7 @@ export function ProductGrid({ products, categories, isLoading }: ProductGridProp
                                 : 'text-neutral-400'
                             }`}
                           >
-                            Dispo: {remainingSellable}
+                            {t('caisse.available')} : {remainingSellable}
                           </span>
                         </div>
                       )}

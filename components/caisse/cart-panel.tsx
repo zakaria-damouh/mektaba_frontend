@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useCartStore } from '@/store/use-cart-store';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
@@ -26,6 +27,7 @@ import { ReceiptDialog, CompletedSaleData } from './receipt-dialog';
 import { HeldCartsDialog } from './held-carts-dialog';
 
 export function CartPanel() {
+  const { t } = useTranslation();
   const supabase = createClient();
   const queryClient = useQueryClient();
 
@@ -51,7 +53,6 @@ export function CartPanel() {
     setHasMounted(true);
   }, []);
 
-  // Customer selection for Credit Sales
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
 
   const { data: customers = [] } = useQuery<Customer[]>({
@@ -66,12 +67,10 @@ export function CartPanel() {
     },
   });
 
-  // Modal States
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
   const [completedSale, setCompletedSale] = useState<CompletedSaleData | null>(null);
   const [isHeldCartsOpen, setIsHeldCartsOpen] = useState(false);
 
-  // Change Calculator State
   const [receivedAmount, setReceivedAmount] = useState<number | ''>('');
 
   const subtotal = getSubtotal();
@@ -88,7 +87,7 @@ export function CartPanel() {
       if (items.length === 0) throw new Error('Le panier est vide');
 
       if (paymentMethod === 'credit' && !selectedCustomerId) {
-        throw new Error('Veuillez sélectionner un client pour une vente à crédit');
+        throw new Error(t('caisse.selectCustomerCredit'));
       }
 
       const itemsSnapshot = items.map((item) => ({
@@ -167,7 +166,7 @@ export function CartPanel() {
 
   return (
     <div className="flex flex-col h-full rounded-3xl border border-neutral-200/90 bg-white shadow-xs overflow-hidden">
-      {/* Receipt Modal */}
+      {/* Modals */}
       <ReceiptDialog
         open={isReceiptOpen}
         onOpenChange={setIsReceiptOpen}
@@ -178,26 +177,22 @@ export function CartPanel() {
         }}
       />
 
-      {/* Held Carts Modal */}
       <HeldCartsDialog
         open={isHeldCartsOpen}
         onOpenChange={setIsHeldCartsOpen}
       />
 
-      {/* ======================================================== */}
-      {/* CART HEADER                                              */}
-      {/* ======================================================== */}
+      {/* Header */}
       <div className="flex items-center justify-between border-b border-neutral-100 p-4 sm:px-5">
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100">
             <TbShoppingBag className="h-4 w-4 stroke-[2.2]" />
           </div>
           <h2 className="font-extrabold text-neutral-900 text-sm tracking-tight">
-            Panier Actuel
+            {t('caisse.currentCart')}
           </h2>
         </div>
 
-        {/* Action buttons: Held badge & Park button */}
         <div className="flex items-center gap-2">
           {heldCarts.length > 0 && (
             <button
@@ -206,7 +201,7 @@ export function CartPanel() {
               className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700 border border-amber-200/80 hover:bg-amber-100 transition-colors cursor-pointer"
             >
               <TbPlayerPause className="h-3 w-3 stroke-[2.5]" />
-              <span>{heldCarts.length} en attente</span>
+              <span>{heldCarts.length} {t('caisse.heldCartsBadge')}</span>
             </button>
           )}
 
@@ -218,10 +213,10 @@ export function CartPanel() {
                 setReceivedAmount('');
               }}
               className="inline-flex items-center gap-1 text-xs font-bold text-neutral-600 hover:text-amber-700 hover:bg-amber-50 px-2.5 py-1 rounded-full transition-colors cursor-pointer"
-              title="Mettre en attente"
+              title={t('caisse.holdBtn')}
             >
               <TbPlayerPause className="h-3.5 w-3.5 text-amber-600 stroke-[2.2]" />
-              <span className="hidden sm:inline">En attente</span>
+              <span className="hidden sm:inline">{t('caisse.holdBtn')}</span>
             </button>
           )}
 
@@ -234,27 +229,25 @@ export function CartPanel() {
               }}
               className="text-xs text-rose-600 hover:text-rose-700 font-bold px-2 py-1 rounded-full hover:bg-rose-50 transition-colors cursor-pointer"
             >
-              Vider
+              {t('caisse.emptyCart')}
             </button>
           )}
         </div>
       </div>
 
-      {/* ======================================================== */}
-      {/* CART ITEMS LIST                                          */}
-      {/* ======================================================== */}
+      {/* Cart Items List */}
       <div className="flex-1 overflow-y-auto p-4 space-y-2.5">
         {!hasMounted ? (
           <div className="flex flex-col items-center justify-center h-48 text-center text-neutral-300">
             <TbLoader2 className="h-6 w-6 animate-spin text-emerald-600" />
-            <p className="mt-2 text-xs text-neutral-400">Chargement...</p>
+            <p className="mt-2 text-xs text-neutral-400">{t('common.loading')}</p>
           </div>
         ) : items.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-48 text-center text-neutral-400">
             <div className="h-12 w-12 rounded-2xl bg-neutral-100 flex items-center justify-center text-neutral-300 mb-2">
               <TbShoppingBag className="h-6 w-6 stroke-[1.8]" />
             </div>
-            <p className="text-xs font-medium">Touchez un article à gauche pour l'ajouter</p>
+            <p className="text-xs font-medium">{t('caisse.emptyCartMsg')}</p>
             {heldCarts.length > 0 && (
               <button
                 type="button"
@@ -262,7 +255,7 @@ export function CartPanel() {
                 className="mt-3 inline-flex items-center gap-1.5 text-xs font-extrabold text-emerald-700 bg-emerald-50 px-3.5 py-1.5 rounded-full border border-emerald-200 hover:bg-emerald-100 transition-all cursor-pointer shadow-2xs"
               >
                 <TbPlayerPlay className="h-3.5 w-3.5 fill-current" />
-                Reprendre un panier ({heldCarts.length})
+                {t('caisse.resumeCart')} ({heldCarts.length})
               </button>
             )}
           </div>
@@ -285,16 +278,16 @@ export function CartPanel() {
                     {item.product.name}
                   </div>
                   <div className="text-[11px] text-neutral-400 font-medium">
-                    {item.unit_price.toFixed(2)} DH / u
+                    {item.unit_price.toFixed(2)} {t('common.dh')} / u
                     {isMaxReached && (
-                      <span className="ml-2 text-[10px] font-bold text-amber-600">
-                        (Max: {available})
+                      <span className="mx-2 text-[10px] font-bold text-amber-600">
+                        ({t('caisse.maxStockReached')}: {available})
                       </span>
                     )}
                   </div>
                 </div>
 
-                {/* Airbnb Rounded-Full Quantity Controller */}
+                {/* Quantity Controls */}
                 <div className="flex items-center gap-1 bg-white rounded-full border border-neutral-200/80 p-0.5 shadow-2xs">
                   <button
                     type="button"
@@ -317,9 +310,9 @@ export function CartPanel() {
                 </div>
 
                 {/* Subtotal & Delete */}
-                <div className="text-right pl-1">
+                <div className="text-end px-1">
                   <div className="font-black text-xs text-neutral-900">
-                    {(item.unit_price * item.quantity).toFixed(2)} DH
+                    {(item.unit_price * item.quantity).toFixed(2)} {t('common.dh')}
                   </div>
                   <button
                     type="button"
@@ -335,12 +328,10 @@ export function CartPanel() {
         )}
       </div>
 
-      {/* ======================================================== */}
-      {/* CHECKOUT & FINANCIAL FOOTER                              */}
-      {/* ======================================================== */}
+      {/* Checkout Section */}
       {items.length > 0 && (
         <div className="border-t border-neutral-100 bg-neutral-50/40 p-4 space-y-3">
-          {/* Segmented Payment Method Pills */}
+          {/* Payment Methods */}
           <div className="grid grid-cols-4 gap-1 p-1 bg-neutral-100 rounded-full">
             <button
               type="button"
@@ -352,7 +343,7 @@ export function CartPanel() {
               }`}
             >
               <TbCash className="h-3.5 w-3.5" />
-              <span>Espèces</span>
+              <span>{t('caisse.cash')}</span>
             </button>
 
             <button
@@ -365,7 +356,7 @@ export function CartPanel() {
               }`}
             >
               <TbNotebook className="h-3.5 w-3.5" />
-              <span>Crédit</span>
+              <span>{t('caisse.credit')}</span>
             </button>
 
             <button
@@ -378,7 +369,7 @@ export function CartPanel() {
               }`}
             >
               <TbCreditCard className="h-3.5 w-3.5" />
-              <span>Carte</span>
+              <span>{t('caisse.card')}</span>
             </button>
 
             <button
@@ -391,26 +382,26 @@ export function CartPanel() {
               }`}
             >
               <TbBuildingBank className="h-3.5 w-3.5" />
-              <span>Virement</span>
+              <span>{t('caisse.transfer')}</span>
             </button>
           </div>
 
-          {/* Customer Dropdown for Credit Sales */}
+          {/* Credit Customer Select */}
           {paymentMethod === 'credit' && (
             <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-3 space-y-1.5 animate-in fade-in">
               <Label className="text-xs font-bold text-amber-900 flex items-center gap-1">
                 <TbNotebook className="h-3.5 w-3.5 text-amber-700 stroke-[2.2]" />
-                Sélectionner le Client au Carnet *
+                {t('caisse.selectCustomerCredit')}
               </Label>
               <select
                 value={selectedCustomerId}
                 onChange={(e) => setSelectedCustomerId(e.target.value)}
                 className="w-full h-9 rounded-xl border border-amber-300 bg-white px-3 text-xs font-bold text-neutral-900 focus:outline-hidden"
               >
-                <option value="">-- Choisir un client --</option>
+                <option value="">{t('caisse.chooseCustomer')}</option>
                 {customers.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.name} {c.current_debt > 0 ? `(Dette: ${c.current_debt.toFixed(0)} DH)` : '(À jour)'}
+                    {c.name} {c.current_debt > 0 ? `(${c.current_debt.toFixed(0)} DH)` : ''}
                   </option>
                 ))}
               </select>
@@ -423,7 +414,7 @@ export function CartPanel() {
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-bold text-neutral-700 flex items-center gap-1">
                   <TbCoins className="h-4 w-4 text-emerald-600 stroke-[2]" />
-                  Montant Reçu du client
+                  {t('caisse.receivedAmount')}
                 </span>
                 <input
                   type="number"
@@ -435,7 +426,7 @@ export function CartPanel() {
                       e.target.value === '' ? '' : parseFloat(e.target.value) || 0
                     )
                   }
-                  className="h-7 w-20 text-right text-xs font-black text-neutral-900 rounded-full border border-neutral-200 px-2 focus:border-emerald-600 focus:outline-hidden"
+                  className="h-7 w-20 text-end text-xs font-black text-neutral-900 rounded-full border border-neutral-200 px-2 focus:border-emerald-600 focus:outline-hidden"
                 />
               </div>
 
@@ -446,7 +437,7 @@ export function CartPanel() {
                   onClick={() => setReceivedAmount(total)}
                   className="h-7 rounded-full border border-neutral-200 bg-neutral-50 text-[11px] font-bold text-neutral-700 hover:bg-emerald-50 hover:border-emerald-300 hover:text-emerald-700 active:scale-95 transition-all cursor-pointer"
                 >
-                  Exact
+                  {t('caisse.exact')}
                 </button>
                 {[20, 50, 100, 200].map((bill) => (
                   <button
@@ -464,7 +455,6 @@ export function CartPanel() {
                 ))}
               </div>
 
-              {/* Live Change Due Banner */}
               {numReceived > 0 && (
                 <div
                   className={`flex items-center justify-between rounded-xl p-2 text-xs font-bold transition-all ${
@@ -474,22 +464,22 @@ export function CartPanel() {
                   }`}
                 >
                   <span>
-                    {isUnderpaid ? ' Reste à payer :' : ' Monnaie à rendre :'}
+                    {isUnderpaid ? t('caisse.underpaid') : t('caisse.changeDue')}
                   </span>
                   <span className="text-sm font-black">
                     {isUnderpaid
-                      ? `${(total - numReceived).toFixed(2)} DH`
-                      : `${changeDue.toFixed(2)} DH`}
+                      ? `${(total - numReceived).toFixed(2)} ${t('common.dh')}`
+                      : `${changeDue.toFixed(2)} ${t('common.dh')}`}
                   </span>
                 </div>
               )}
             </div>
           )}
 
-          {/* Discount / Tkhfid */}
+          {/* Discount Input */}
           <div className="flex items-center justify-between gap-2 pt-0.5">
             <Label htmlFor="discount" className="text-xs font-semibold text-neutral-500 whitespace-nowrap">
-              Remise / Tkhfid (DH)
+              {t('caisse.discount')}
             </Label>
             <Input
               id="discount"
@@ -499,31 +489,31 @@ export function CartPanel() {
               placeholder="0.00"
               value={discount || ''}
               onChange={(e) => setDiscount(parseFloat(e.target.value) || 0)}
-              className="h-8 w-24 text-right text-xs bg-white rounded-xl border-neutral-200 font-bold"
+              className="h-8 w-24 text-end text-xs bg-white rounded-xl border-neutral-200 font-bold"
             />
           </div>
 
-          {/* Subtotal & Total */}
+          {/* Totals */}
           <div className="space-y-1 border-t border-neutral-200 pt-2">
             <div className="flex justify-between text-xs text-neutral-400 font-medium">
-              <span>Sous-total:</span>
-              <span>{subtotal.toFixed(2)} DH</span>
+              <span>{t('caisse.subtotal')}</span>
+              <span>{subtotal.toFixed(2)} {t('common.dh')}</span>
             </div>
             {discount > 0 && (
               <div className="flex justify-between text-xs text-rose-600 font-bold">
-                <span>Remise:</span>
-                <span>-{discount.toFixed(2)} DH</span>
+                <span>{t('caisse.appliedDiscount')}</span>
+                <span>-{discount.toFixed(2)} {t('common.dh')}</span>
               </div>
             )}
             <div className="flex justify-between items-baseline pt-1">
-              <span className="font-black text-neutral-900 text-sm">TOTAL À PAYER:</span>
+              <span className="font-black text-neutral-900 text-sm">{t('caisse.totalToPay')}</span>
               <span className="font-black text-neutral-900 text-xl">
-                {total.toFixed(2)} <span className="text-xs text-emerald-600">DH</span>
+                {total.toFixed(2)} <span className="text-xs text-emerald-600">{t('common.dh')}</span>
               </span>
             </div>
           </div>
 
-          {/* Main Checkout Button */}
+          {/* Checkout CTA */}
           <Button
             onClick={() => checkoutMutation.mutate()}
             disabled={checkoutMutation.isPending || items.length === 0}
@@ -532,7 +522,7 @@ export function CartPanel() {
             {checkoutMutation.isPending ? (
               <TbLoader2 className="h-5 w-5 animate-spin" />
             ) : (
-              `Valider la Vente (${total.toFixed(2)} DH)`
+              `${t('caisse.checkoutBtn')} (${total.toFixed(2)} ${t('common.dh')})`
             )}
           </Button>
         </div>

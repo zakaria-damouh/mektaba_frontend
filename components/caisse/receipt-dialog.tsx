@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { printElement } from '@/lib/print';
 import {
   Dialog,
@@ -52,10 +53,10 @@ export function ReceiptDialog({
   saleData,
   onNewSale,
 }: ReceiptDialogProps) {
+  const { t } = useTranslation();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [copiesToPrint, setCopiesToPrint] = useState<1 | 2>(1);
 
-  // Pre-fill phone number if customer had one
   useEffect(() => {
     if (saleData?.customerPhone) {
       setPhoneNumber(saleData.customerPhone);
@@ -126,14 +127,12 @@ export function ReceiptDialog({
 
   const renderSingleReceipt = (type: 'CLIENT' | 'MAGASIN') => (
     <div className="font-mono text-xs text-neutral-800 space-y-2.5 p-3">
-      {/* Cancellation Banner */}
       {isCancelled && (
         <div className="text-center font-bold text-xs bg-black text-white py-1 uppercase tracking-wider rounded-xs">
           *** TICKET ANNULÉ / REMBOURSÉ ***
         </div>
       )}
 
-      {/* 2 Copies Header */}
       {copiesToPrint === 2 && (
         <div className="text-center font-bold text-[11px] tracking-wider border-b border-dashed border-neutral-300 pb-1">
           {type === 'CLIENT'
@@ -142,7 +141,6 @@ export function ReceiptDialog({
         </div>
       )}
 
-      {/* Header */}
       <div className="text-center space-y-0.5 border-b border-dashed border-neutral-300 pb-2">
         <div className="flex items-center justify-center gap-1.5 font-black text-sm text-neutral-900">
           <TbBuildingStore className="h-4 w-4" />
@@ -165,7 +163,6 @@ export function ReceiptDialog({
         )}
       </div>
 
-      {/* Items list */}
       <div className="space-y-1.5 py-1">
         {saleData.items.map((item, idx) => (
           <div key={idx} className="flex justify-between items-baseline gap-2">
@@ -179,7 +176,6 @@ export function ReceiptDialog({
         ))}
       </div>
 
-      {/* Totals */}
       <div className="border-t border-dashed border-neutral-300 pt-2 space-y-1 text-[11px]">
         <div className="flex justify-between text-neutral-500">
           <span>Sous-total:</span>
@@ -200,7 +196,6 @@ export function ReceiptDialog({
         </div>
       </div>
 
-      {/* Footer */}
       {isCancelled ? (
         <div className="text-center text-[10px] text-neutral-500 pt-2 border-t border-dashed border-neutral-300 italic">
           Ticket annulé ({saleData.cancellationReason || 'Erreur'})
@@ -235,16 +230,15 @@ export function ReceiptDialog({
             )}
             <div>
               <DialogTitle className="text-base font-black tracking-tight text-neutral-900">
-                {isCancelled ? 'Ticket Annulé' : 'Bon de Vente'} #{saleData.receiptNumber}
+                {isCancelled ? t('history.cancelModalTitle') : t('caisse.receiptSuccess')} #{saleData.receiptNumber}
               </DialogTitle>
               <p className="text-[11px] text-neutral-400 font-medium">
-                {isCancelled ? 'Opération annulée et remboursée' : 'Vente enregistrée avec succès'}
+                {isCancelled ? t('history.ticketCancelledOn') : t('caisse.receiptSuccess')}
               </p>
             </div>
           </div>
         </DialogHeader>
 
-        {/* Screen Preview Container */}
         <div className="rounded-2xl border border-dashed border-neutral-300 bg-neutral-50/50 max-h-[42vh] overflow-y-auto">
           <div id="printable-receipt">
             {renderSingleReceipt('CLIENT')}
@@ -261,11 +255,10 @@ export function ReceiptDialog({
           </div>
         </div>
 
-        {/* WhatsApp Customer Input */}
         <div className="space-y-1.5 pt-1">
           <label className="text-xs font-bold text-neutral-700 flex items-center gap-1.5">
             <TbBrandWhatsapp className="h-4 w-4 text-emerald-600 stroke-[2.2]" />
-            Numéro WhatsApp du client (Optionnel)
+            {t('caisse.whatsappPhone')}
           </label>
           <Input
             placeholder="ex: 06 12 34 56 78"
@@ -275,7 +268,6 @@ export function ReceiptDialog({
           />
         </div>
 
-        {/* Action Buttons: Airbnb Pills */}
         <div className="space-y-2 pt-1">
           <div className="grid grid-cols-2 gap-2">
             <Button
@@ -284,7 +276,7 @@ export function ReceiptDialog({
               className="h-10 gap-2 bg-neutral-900 hover:bg-neutral-800 text-white rounded-full font-bold text-xs shadow-xs hover:scale-101 active:scale-[0.99] transition-all cursor-pointer"
             >
               <TbPrinter className="h-4 w-4 stroke-[2.2]" />
-              Imprimer (1 Bon)
+              {t('caisse.printOne')}
             </Button>
 
             <Button
@@ -294,7 +286,7 @@ export function ReceiptDialog({
               className="h-10 gap-2 border-neutral-200 hover:bg-neutral-100 text-neutral-800 rounded-full font-bold text-xs hover:scale-101 active:scale-[0.99] transition-all cursor-pointer"
             >
               <TbCopy className="h-4 w-4 stroke-[2.2]" />
-              2 Exemplaires
+              {t('caisse.printTwo')}
             </Button>
           </div>
 
@@ -304,11 +296,10 @@ export function ReceiptDialog({
             className="w-full h-10 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full font-black text-xs shadow-sm shadow-emerald-600/20 hover:scale-101 active:scale-[0.99] transition-all cursor-pointer"
           >
             <TbBrandWhatsapp className="h-4 w-4 stroke-[2.2]" />
-            Partager sur WhatsApp
+            {t('caisse.shareWhatsApp')}
           </Button>
         </div>
 
-        {/* Dismiss Button */}
         <Button
           type="button"
           onClick={() => {
@@ -319,7 +310,7 @@ export function ReceiptDialog({
           variant="ghost"
           className="w-full text-neutral-400 hover:text-neutral-900 font-bold text-xs rounded-full cursor-pointer -mt-1"
         >
-          {onNewSale ? 'Passer au client suivant (Nouvelle Vente)' : 'Fermer'}
+          {onNewSale ? t('caisse.nextCustomer') : t('common.close')}
         </Button>
       </DialogContent>
     </Dialog>

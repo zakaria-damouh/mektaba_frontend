@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslation } from 'react-i18next';
 import { useCartStore } from '@/store/use-cart-store';
 import {
   Dialog,
@@ -22,6 +23,7 @@ interface HeldCartsDialogProps {
 }
 
 export function HeldCartsDialog({ open, onOpenChange }: HeldCartsDialogProps) {
+  const { t } = useTranslation();
   const heldCarts = useCartStore((state) => state.heldCarts);
   const resumeHeldCart = useCartStore((state) => state.resumeHeldCart);
   const deleteHeldCart = useCartStore((state) => state.deleteHeldCart);
@@ -48,10 +50,10 @@ export function HeldCartsDialog({ open, onOpenChange }: HeldCartsDialogProps) {
             </div>
             <div>
               <DialogTitle className="text-base font-black tracking-tight text-neutral-900">
-                Paniers en Attente ({heldCarts.length})
+                {t('caisse.heldCartsTitle')} ({heldCarts.length})
               </DialogTitle>
               <p className="text-[11px] text-neutral-400 font-medium mt-0.5">
-                Reprenez la commande d'un client en cours
+                {t('caisse.heldCartsSubtitle')}
               </p>
             </div>
           </div>
@@ -63,7 +65,7 @@ export function HeldCartsDialog({ open, onOpenChange }: HeldCartsDialogProps) {
               <div className="h-12 w-12 rounded-2xl bg-neutral-100 flex items-center justify-center text-neutral-300 mx-auto mb-2">
                 <TbShoppingBag className="h-6 w-6 stroke-[1.8]" />
               </div>
-              <p className="text-xs font-medium">Aucun panier en attente pour le moment</p>
+              <p className="text-xs font-medium">{t('caisse.noHeldCarts')}</p>
             </div>
           ) : (
             heldCarts.map((cart, index) => (
@@ -74,7 +76,7 @@ export function HeldCartsDialog({ open, onOpenChange }: HeldCartsDialogProps) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="font-extrabold text-sm text-neutral-900">
-                      Panier #{index + 1}
+                      {t('caisse.order')} #{index + 1}
                     </span>
                     <span className="flex items-center gap-1 text-[11px] text-neutral-400 font-medium">
                       <TbClock className="h-3.5 w-3.5 stroke-[2]" />
@@ -83,11 +85,10 @@ export function HeldCartsDialog({ open, onOpenChange }: HeldCartsDialogProps) {
                   </div>
                   <span className="font-black text-neutral-900 text-base">
                     {cart.total.toFixed(2)}{' '}
-                    <span className="text-xs text-emerald-600 font-bold">DH</span>
+                    <span className="text-xs text-emerald-600 font-bold">{t('common.dh')}</span>
                   </span>
                 </div>
 
-                {/* Items preview box */}
                 <div className="text-xs text-neutral-600 bg-white rounded-xl p-2.5 border border-neutral-100 space-y-1">
                   {cart.items.map((item, idx) => (
                     <div key={idx} className="flex justify-between items-baseline truncate">
@@ -95,13 +96,12 @@ export function HeldCartsDialog({ open, onOpenChange }: HeldCartsDialogProps) {
                         • {item.quantity}x {item.product.name}
                       </span>
                       <span className="font-black text-neutral-900 ml-2 shrink-0">
-                        {(item.unit_price * item.quantity).toFixed(2)} DH
+                        {(item.unit_price * item.quantity).toFixed(2)} {t('common.dh')}
                       </span>
                     </div>
                   ))}
                 </div>
 
-                {/* Action buttons */}
                 <div className="flex items-center justify-between pt-1">
                   <Button
                     size="sm"
@@ -110,7 +110,7 @@ export function HeldCartsDialog({ open, onOpenChange }: HeldCartsDialogProps) {
                     className="h-8 rounded-full px-3 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 gap-1.5 font-bold cursor-pointer"
                   >
                     <TbTrash className="h-3.5 w-3.5 stroke-[2.2]" />
-                    Supprimer
+                    {t('common.delete')}
                   </Button>
 
                   <Button
@@ -119,7 +119,7 @@ export function HeldCartsDialog({ open, onOpenChange }: HeldCartsDialogProps) {
                     className="h-8 rounded-full px-4 text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-black gap-1.5 shadow-sm shadow-emerald-600/20 cursor-pointer"
                   >
                     <TbPlayerPlay className="h-3.5 w-3.5 fill-current" />
-                    Reprendre la commande
+                    {t('caisse.resumeOrderBtn')}
                   </Button>
                 </div>
               </div>
