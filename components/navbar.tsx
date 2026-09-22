@@ -3,24 +3,31 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import '@/lib/i18n'; // Initialize i18next
+import { useTranslation } from 'react-i18next';
+import { switchLanguage } from '@/lib/i18n';
 import {
-  ShoppingCart,
-  Package,
-  BookOpen,
-  History,
-  LogOut,
-  Store,
-  Sparkles,
-} from 'lucide-react';
+  TbShoppingCart,
+  TbPackage,
+  TbNotebook,
+  TbHistory,
+  TbLogout,
+  TbBuildingStore,
+  TbSparkles,
+  TbLanguage,
+} from 'react-icons/tb';
 
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
+  const { t, i18n } = useTranslation();
 
   if (pathname === '/login') {
     return null;
   }
+
+  const currentLang = (i18n.language || 'fr').startsWith('ar') ? 'ar' : 'fr';
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -29,23 +36,21 @@ export default function Navbar() {
   };
 
   const navItems = [
-    { name: 'Caisse', href: '/caisse', icon: ShoppingCart },
-    { name: 'Stock', href: '/stock', icon: Package },
-    { name: 'Carnet', href: '/carnet', icon: BookOpen },
-    { name: 'Historique', href: '/historique', icon: History },
+    { name: t('nav.pos'), href: '/caisse', icon: TbShoppingCart },
+    { name: t('nav.stock'), href: '/stock', icon: TbPackage },
+    { name: t('nav.carnet'), href: '/carnet', icon: TbNotebook },
+    { name: t('nav.history'), href: '/historique', icon: TbHistory },
   ];
 
   return (
     <>
-      {/* ======================================================== */}
-      {/* DESKTOP AIRBNB-STYLE TOP NAVBAR                         */}
-      {/* ======================================================== */}
+      {/* Desktop Top Navbar */}
       <header className="sticky top-0 z-40 w-full border-b border-neutral-200/80 bg-white/90 backdrop-blur-md transition-all">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
-          {/* 1. Brand Logo (Airbnb style: bold icon + lowercase brand) */}
+          {/* Brand Logo */}
           <Link href="/caisse" className="flex items-center gap-2.5 group">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-md shadow-emerald-600/20 transition-transform duration-200 group-hover:scale-105">
-              <Store className="h-6 w-6 stroke-[2.2]" />
+              <TbBuildingStore className="h-6 w-6 stroke-[2.2]" />
             </div>
             <div>
               <div className="flex items-center gap-1.5">
@@ -53,17 +58,17 @@ export default function Navbar() {
                   maktaba
                 </span>
                 <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-emerald-700 border border-emerald-200/60">
-                  <Sparkles className="h-2.5 w-2.5" />
+                  <TbSparkles className="h-2.5 w-2.5" />
                   POS
                 </span>
               </div>
               <p className="text-[11px] text-neutral-400 font-medium -mt-0.5">
-                Système de caisse
+                {t('nav.storeSubtitle')}
               </p>
             </div>
           </Link>
 
-          {/* 2. Airbnb Center Segmented Capsule */}
+          {/* Center Navigation Capsule */}
           <nav className="hidden md:flex items-center">
             <div className="flex items-center rounded-full border border-neutral-200/90 bg-white p-1.5 shadow-sm hover:shadow-md transition-shadow duration-200">
               {navItems.map((item) => {
@@ -88,38 +93,51 @@ export default function Navbar() {
             </div>
           </nav>
 
-          {/* 3. Airbnb User Capsule Button (Right Side) */}
-          <div className="hidden md:flex items-center gap-3">
-            {/* Live Counter Badge */}
-            <div className="flex items-center gap-2 rounded-full border border-neutral-200 bg-neutral-50/70 py-1.5 px-3.5 text-xs">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
-              <span className="font-semibold text-neutral-700 text-[11px]">
-                Caisse Active
-              </span>
+          {/* Right Controls: Language Switcher & User Logout */}
+          <div className="flex items-center gap-2.5">
+            {/* AIRBNB LANGUAGE SWITCHER PILL [ FR | عربي ] */}
+            <div className="inline-flex items-center rounded-full border border-neutral-200 bg-neutral-50/80 p-1 shadow-2xs">
+              <button
+                type="button"
+                onClick={() => switchLanguage('fr')}
+                className={`rounded-full px-2.5 py-1 text-xs font-black transition-all cursor-pointer ${
+                  currentLang === 'fr'
+                    ? 'bg-white text-emerald-700 shadow-xs'
+                    : 'text-neutral-400 hover:text-neutral-700'
+                }`}
+              >
+                FR
+              </button>
+              <button
+                type="button"
+                onClick={() => switchLanguage('ar')}
+                className={`rounded-full px-2.5 py-1 text-xs font-black transition-all cursor-pointer ${
+                  currentLang === 'ar'
+                    ? 'bg-white text-emerald-700 shadow-xs font-sans'
+                    : 'text-neutral-400 hover:text-neutral-700'
+                }`}
+              >
+                عربي
+              </button>
             </div>
 
-            {/* Logout Capsule */}
+            {/* Logout Button */}
             <button
               type="button"
               onClick={handleLogout}
-              title="Se déconnecter"
-              className="flex items-center gap-2 rounded-full border border-neutral-200 bg-white p-2 pl-3 hover:border-neutral-300 hover:shadow-sm transition-all duration-200 cursor-pointer text-neutral-600 hover:text-rose-600"
+              title={t('nav.logout')}
+              className="flex items-center gap-2 rounded-full border border-neutral-200 bg-white p-2 pl-3 hover:border-neutral-300 hover:shadow-xs transition-all duration-200 cursor-pointer text-neutral-600 hover:text-rose-600"
             >
-              <span className="text-xs font-bold">Quitter</span>
+              <span className="text-xs font-bold hidden sm:inline">{t('nav.logout')}</span>
               <div className="flex h-7 w-7 items-center justify-center rounded-full bg-neutral-100 text-neutral-600 group-hover:bg-rose-50 group-hover:text-rose-600">
-                <LogOut className="h-3.5 w-3.5" />
+                <TbLogout className="h-3.5 w-3.5" />
               </div>
             </button>
           </div>
         </div>
       </header>
 
-      {/* ======================================================== */}
-      {/* MOBILE AIRBNB-STYLE BOTTOM DOCK                         */}
-      {/* ======================================================== */}
+      {/* Mobile Bottom Dock */}
       <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-neutral-200 bg-white/95 backdrop-blur-lg md:hidden">
         <div className="flex h-16 items-center justify-around px-2">
           {navItems.map((item) => {

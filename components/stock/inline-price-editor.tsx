@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TbPencil, TbLoader2 } from 'react-icons/tb';
 
 interface InlinePriceEditorProps {
@@ -17,6 +18,7 @@ export function InlinePriceEditor({
   initialValue,
   onSave,
 }: InlinePriceEditorProps) {
+  const { t } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
   const [value, setValue] = useState(initialValue.toString());
   const [isSaving, setIsSaving] = useState(false);
@@ -83,7 +85,7 @@ export function InlinePriceEditor({
           onBlur={handleSave}
           className="w-20 h-7 rounded-full border border-emerald-600 bg-white px-2.5 text-xs font-bold text-neutral-900 shadow-sm focus:outline-hidden ring-2 ring-emerald-600/10"
         />
-        <span className="text-[11px] font-extrabold text-emerald-700">DH</span>
+        <span className="text-[11px] font-extrabold text-emerald-700">{t('common.dh')}</span>
         {isSaving && <TbLoader2 className="h-3 w-3 animate-spin text-emerald-600" />}
       </div>
     );
@@ -93,8 +95,8 @@ export function InlinePriceEditor({
     <button
       type="button"
       onClick={() => setIsEditing(true)}
-      title="Cliquer pour modifier"
-      className="group inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 -mx-1.5 text-left transition-all hover:bg-emerald-50/80 cursor-pointer"
+      title={t('common.edit')}
+      className="group inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 -mx-1.5 text-start transition-all hover:bg-emerald-50/80 cursor-pointer"
     >
       <span
         className={`text-xs ${
@@ -103,7 +105,7 @@ export function InlinePriceEditor({
             : 'font-semibold text-neutral-500 group-hover:text-emerald-700'
         }`}
       >
-        {initialValue.toFixed(2)} DH
+        {initialValue.toFixed(2)} {t('common.dh')}
       </span>
       <TbPencil className="h-2.5 w-2.5 opacity-0 text-emerald-600 transition-opacity group-hover:opacity-100 stroke-[2.5]" />
     </button>

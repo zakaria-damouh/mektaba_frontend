@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Category } from '@/types';
 import {
   TbSearch,
@@ -39,9 +40,9 @@ export function ProductFilters({
   servicesCount,
   categories,
 }: ProductFiltersProps) {
+  const { t } = useTranslation();
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Press "/" to jump to search bar
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (
@@ -60,17 +61,14 @@ export function ProductFilters({
   return (
     <div className="space-y-3">
       <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between">
-        {/* ======================================================== */}
-        {/* AIRBNB UNIFIED SEARCH & CATEGORY CAPSULE                 */}
-        {/* ======================================================== */}
-        <div className="flex-1 flex items-center rounded-full border border-neutral-200/90 bg-white p-1.5 pl-4 shadow-sm hover:shadow-md transition-all duration-200 focus-within:border-emerald-600 focus-within:ring-2 focus-within:ring-emerald-600/10">
-          {/* Search Icon & Input */}
+        {/* Search & Category Capsule */}
+        <div className="flex-1 flex items-center rounded-full border border-neutral-200/90 bg-white p-1.5 px-4 shadow-sm hover:shadow-md transition-all duration-200 focus-within:border-emerald-600 focus-within:ring-2 focus-within:ring-emerald-600/10">
           <div className="flex items-center flex-1 gap-2 min-w-0">
             <TbSearch className="h-4 w-4 shrink-0 text-neutral-400 stroke-[2.2]" />
             <input
               ref={searchInputRef}
               type="text"
-              placeholder="Rechercher nom ou code-barres (Tapez '/' pour chercher)..."
+              placeholder={t('stock.searchPlaceholder')}
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               className="w-full bg-transparent text-xs font-medium text-neutral-800 placeholder-neutral-400 focus:outline-hidden"
@@ -89,18 +87,16 @@ export function ProductFilters({
             </kbd>
           </div>
 
-          {/* Subtle Vertical Divider */}
           <div className="h-6 w-[1px] bg-neutral-200 mx-2 shrink-0 hidden sm:block" />
 
-          {/* Integrated Category Dropdown */}
-          <div className="relative shrink-0 hidden sm:flex items-center gap-1.5 pr-2">
+          <div className="relative shrink-0 hidden sm:flex items-center gap-1.5">
             <TbCategory className="h-3.5 w-3.5 text-neutral-400 stroke-[2]" />
             <select
               value={selectedCategory}
               onChange={(e) => onCategoryChange(e.target.value)}
-              className="bg-transparent text-xs font-semibold text-neutral-700 focus:outline-hidden cursor-pointer pr-1"
+              className="bg-transparent text-xs font-semibold text-neutral-700 focus:outline-hidden cursor-pointer"
             >
-              <option value="all">Toutes les catégories</option>
+              <option value="all">{t('stock.allCategories')}</option>
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.name}
@@ -110,27 +106,8 @@ export function ProductFilters({
           </div>
         </div>
 
-        {/* Mobile-only Category select */}
-        <div className="sm:hidden">
-          <select
-            value={selectedCategory}
-            onChange={(e) => onCategoryChange(e.target.value)}
-            className="w-full h-10 rounded-full border border-neutral-200 bg-white px-4 text-xs font-semibold text-neutral-700 shadow-xs"
-          >
-            <option value="all">Toutes les catégories</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* ======================================================== */}
-        {/* RIGHT CONTROLS: Services Filter Pill & View Switcher     */}
-        {/* ======================================================== */}
+        {/* Action Controls */}
         <div className="flex items-center justify-end gap-2.5 shrink-0">
-          {/* Services Filter Pill */}
           <button
             type="button"
             onClick={() => onTabChange(activeTab === 'services' ? 'all' : 'services')}
@@ -141,15 +118,15 @@ export function ProductFilters({
             }`}
           >
             <TbSparkles className={`h-3.5 w-3.5 ${activeTab === 'services' ? 'text-white' : 'text-emerald-600'}`} />
-            <span>Services ({servicesCount})</span>
+            <span>{t('stock.services')} ({servicesCount})</span>
           </button>
 
-          {/* Segmented View Mode Capsule */}
+          {/* View Toggle */}
           <div className="inline-flex items-center rounded-full border border-neutral-200/90 bg-white p-1 shadow-xs">
             <button
               type="button"
               onClick={() => onViewModeChange('table')}
-              title="Vue Tableau"
+              title={t('stock.viewTable')}
               className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all duration-200 cursor-pointer ${
                 viewMode === 'table'
                   ? 'bg-neutral-900 text-white shadow-xs'
@@ -157,13 +134,13 @@ export function ProductFilters({
               }`}
             >
               <TbList className="h-4 w-4 stroke-[2.2]" />
-              <span className="hidden sm:inline">Tableau</span>
+              <span className="hidden sm:inline">{t('stock.viewTable')}</span>
             </button>
 
             <button
               type="button"
               onClick={() => onViewModeChange('grid')}
-              title="Vue Carrés"
+              title={t('stock.viewGrid')}
               className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all duration-200 cursor-pointer ${
                 viewMode === 'grid'
                   ? 'bg-neutral-900 text-white shadow-xs'
@@ -171,7 +148,7 @@ export function ProductFilters({
               }`}
             >
               <TbLayoutGrid className="h-4 w-4 stroke-[2.2]" />
-              <span className="hidden sm:inline">Carrés</span>
+              <span className="hidden sm:inline">{t('stock.viewGrid')}</span>
             </button>
           </div>
         </div>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import { Product, Category } from '@/types';
@@ -26,6 +27,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 export default function StockPage() {
+  const { t } = useTranslation();
   const supabase = createClient();
   const queryClient = useQueryClient();
 
@@ -126,7 +128,7 @@ export default function StockPage() {
       queryClient.invalidateQueries({ queryKey: ['products'] });
     },
     onError: (err: any) => {
-      alert(`Erreur de mise à jour: ${err.message}`);
+      alert(`Erreur: ${err.message}`);
     },
   });
 
@@ -146,7 +148,7 @@ export default function StockPage() {
       setProductToDelete(null);
     },
     onError: (err: any) => {
-      alert(`Erreur de suppression: ${err.message}`);
+      alert(`Erreur: ${err.message}`);
     },
   });
 
@@ -222,20 +224,19 @@ export default function StockPage() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-black tracking-tight text-neutral-900">
-            Inventaire & Stock
+            {t('stock.title')}
           </h1>
           <p className="text-xs text-neutral-400 font-medium">
-            Suivi des articles, alertes et valeur du magasin
+            {t('stock.subtitle')}
           </p>
         </div>
 
-        {/* Airbnb Pill Action Button */}
         <Button
           onClick={handleOpenAdd}
           className="gap-2 bg-emerald-600 hover:bg-emerald-700 shadow-sm shadow-emerald-600/20 text-white rounded-full px-5 py-2.5 text-xs font-bold transition-all duration-200 hover:scale-102 cursor-pointer"
         >
           <TbPlus className="h-4 w-4 stroke-[2.5]" />
-          Ajouter un Article
+          {t('stock.addItem')}
         </Button>
       </div>
 
@@ -265,7 +266,7 @@ export default function StockPage() {
         onDelete={handleTriggerDelete}
       />
 
-      {/* Airbnb Rounded-3xl Delete Alert Dialog */}
+      {/* Delete Alert Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent className="max-w-md bg-white rounded-3xl p-6 sm:p-7 border border-neutral-200">
           <AlertDialogHeader>
@@ -274,15 +275,15 @@ export default function StockPage() {
                 <TbAlertTriangle className="h-5 w-5 stroke-[2.2]" />
               </div>
               <AlertDialogTitle className="text-base font-black text-neutral-900">
-                Supprimer l'article ?
+                {t('common.delete')} ?
               </AlertDialogTitle>
             </div>
             <AlertDialogDescription className="pt-2 text-xs text-neutral-600 leading-relaxed">
-              Êtes-vous sûr de vouloir supprimer{' '}
+              {t('stock.deletePrompt')}{' '}
               <span className="font-bold text-neutral-900">
                 "{productToDelete?.name}"
               </span>{' '}
-              ? L'article sera archivé et retiré de la caisse, mais vos anciens tickets resteront intacts.
+              ? {t('stock.deleteWarning')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="pt-3">
@@ -290,7 +291,7 @@ export default function StockPage() {
               disabled={deleteProductMutation.isPending}
               className="rounded-full px-5 text-xs font-bold border-neutral-200 hover:bg-neutral-100"
             >
-              Annuler
+              {t('common.cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
@@ -305,7 +306,7 @@ export default function StockPage() {
               ) : (
                 <TbTrash className="h-4 w-4 stroke-[2.2]" />
               )}
-              Confirmer la suppression
+              {t('stock.deleteConfirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

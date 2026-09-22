@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -33,6 +34,7 @@ export function ProductDialog({
   categories,
   productToEdit,
 }: ProductDialogProps) {
+  const { t } = useTranslation();
   const supabase = createClient();
   const queryClient = useQueryClient();
 
@@ -183,15 +185,14 @@ export function ProductDialog({
       <DialogContent className="max-w-md bg-white rounded-3xl p-6 sm:p-7 shadow-2xl max-h-[90vh] overflow-y-auto border border-neutral-200/90">
         <DialogHeader className="border-b border-neutral-100 pb-3">
           <DialogTitle className="text-lg font-black tracking-tight text-neutral-900">
-            {isEditMode ? "Modifier l'Article" : 'Nouvel Article'}
+            {isEditMode ? t('stock.editItem') : t('stock.newItem')}
           </DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-3">
-          {/* Photo Picker */}
           <div>
             <Label className="block text-xs font-bold text-neutral-700 mb-1.5">
-              Photo de l'article
+              {t('stock.photoLabel')}
             </Label>
             {imagePreview ? (
               <div className="relative h-36 w-full rounded-2xl overflow-hidden border border-neutral-200 bg-neutral-50 flex items-center justify-center">
@@ -203,7 +204,7 @@ export function ProductDialog({
                 <button
                   type="button"
                   onClick={removeImage}
-                  className="absolute top-2.5 right-2.5 h-7 w-7 rounded-full bg-neutral-900/80 text-white flex items-center justify-center hover:bg-neutral-900 transition-colors cursor-pointer"
+                  className="absolute top-2.5 end-2.5 h-7 w-7 rounded-full bg-neutral-900/80 text-white flex items-center justify-center hover:bg-neutral-900 transition-colors cursor-pointer"
                 >
                   <TbX className="h-4 w-4" />
                 </button>
@@ -212,9 +213,9 @@ export function ProductDialog({
               <label className="flex flex-col items-center justify-center h-28 w-full border-2 border-dashed border-neutral-200 hover:border-emerald-500 rounded-2xl cursor-pointer bg-neutral-50/60 hover:bg-emerald-50/40 transition-colors duration-200">
                 <TbCamera className="h-6 w-6 text-neutral-400 mb-1 stroke-[1.8]" />
                 <span className="text-xs font-bold text-neutral-700">
-                  Prendre une photo ou importer
+                  {t('stock.uploadPhoto')}
                 </span>
-                <span className="text-[10px] text-neutral-400 mt-0.5">PNG, JPG jusqu'à 5MB</span>
+                <span className="text-[10px] text-neutral-400 mt-0.5">{t('stock.photoHint')}</span>
                 <input
                   type="file"
                   accept="image/*"
@@ -225,14 +226,13 @@ export function ProductDialog({
             )}
           </div>
 
-          {/* Name */}
           <div className="space-y-1.5">
             <Label htmlFor="name" className="text-xs font-bold text-neutral-700">
-              Nom de l'article *
+              {t('stock.productName')}
             </Label>
             <Input
               id="name"
-              placeholder="ex: Cahier 96p Sira, Stylo Bic Bleu"
+              placeholder={t('stock.productNamePlh')}
               className="rounded-xl border-neutral-200 focus-visible:ring-emerald-600/10 focus-visible:border-emerald-600 text-xs"
               {...register('name')}
             />
@@ -241,15 +241,14 @@ export function ProductDialog({
             )}
           </div>
 
-          {/* Barcode & Category */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="barcode" className="text-xs font-bold text-neutral-700">
-                Code-barres
+                {t('stock.barcode')}
               </Label>
               <Input
                 id="barcode"
-                placeholder="Scan / EAN / ISBN"
+                placeholder={t('stock.barcodePlh')}
                 className="rounded-xl border-neutral-200 focus-visible:ring-emerald-600/10 focus-visible:border-emerald-600 text-xs font-mono"
                 {...register('barcode')}
               />
@@ -257,14 +256,14 @@ export function ProductDialog({
 
             <div className="space-y-1.5">
               <Label htmlFor="category_id" className="text-xs font-bold text-neutral-700">
-                Catégorie
+                {t('stock.category')}
               </Label>
               <select
                 id="category_id"
                 {...register('category_id')}
                 className="flex h-9 w-full rounded-xl border border-neutral-200 bg-white px-3 py-1 text-xs font-medium text-neutral-800 shadow-2xs focus:border-emerald-600 focus:outline-hidden cursor-pointer"
               >
-                <option value="">Sélectionner</option>
+                <option value="">{t('stock.selectCat')}</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name}
@@ -274,11 +273,10 @@ export function ProductDialog({
             </div>
           </div>
 
-          {/* Prices */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label htmlFor="buy_price" className="text-xs font-bold text-neutral-700">
-                Prix Achat (DH)
+                {t('stock.buyPrice')} ({t('common.dh')})
               </Label>
               <Input
                 id="buy_price"
@@ -292,7 +290,7 @@ export function ProductDialog({
 
             <div className="space-y-1.5">
               <Label htmlFor="sell_price" className="text-xs font-bold text-neutral-700">
-                Prix Vente (DH) *
+                {t('stock.sellPrice')} ({t('common.dh')}) *
               </Label>
               <Input
                 id="sell_price"
@@ -305,8 +303,7 @@ export function ProductDialog({
             </div>
           </div>
 
-          {/* Service Toggle */}
-          <div className="flex items-center space-x-2.5 rounded-2xl border border-neutral-200/80 p-3 bg-neutral-50/60">
+          <div className="flex items-center space-x-2.5 rtl:space-x-reverse rounded-2xl border border-neutral-200/80 p-3 bg-neutral-50/60">
             <Checkbox
               id="is_service"
               checked={isService}
@@ -314,16 +311,15 @@ export function ProductDialog({
             />
             <Label htmlFor="is_service" className="text-xs font-semibold text-neutral-700 cursor-pointer flex items-center gap-1.5">
               <TbSparkles className="h-3.5 w-3.5 text-emerald-600" />
-              C'est un service (Photocopies, impression, reliure...)
+              {t('stock.isServiceLabel')}
             </Label>
           </div>
 
-          {/* Stock Inputs */}
           {!isService && (
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label htmlFor="stock_quantity" className="text-xs font-bold text-neutral-700">
-                  Quantité en Stock
+                  {t('stock.stockQty')}
                 </Label>
                 <Input
                   id="stock_quantity"
@@ -336,7 +332,7 @@ export function ProductDialog({
 
               <div className="space-y-1.5">
                 <Label htmlFor="min_stock_level" className="text-xs font-bold text-neutral-700">
-                  Alerte Stock Min.
+                  {t('stock.minStockAlert')}
                 </Label>
                 <Input
                   id="min_stock_level"
@@ -349,7 +345,6 @@ export function ProductDialog({
             </div>
           )}
 
-          {/* Footer Actions */}
           <div className="flex justify-end gap-2 pt-4 border-t border-neutral-100">
             <Button
               type="button"
@@ -357,7 +352,7 @@ export function ProductDialog({
               onClick={() => onOpenChange(false)}
               className="rounded-full px-5 text-xs font-bold border-neutral-200 hover:bg-neutral-100"
             >
-              Annuler
+              {t('common.cancel')}
             </Button>
             <Button
               type="submit"
@@ -367,7 +362,7 @@ export function ProductDialog({
               {(saveProductMutation.isPending || isUploadingImage) && (
                 <TbLoader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              {isEditMode ? 'Enregistrer les modifications' : "Enregistrer l'article"}
+              {isEditMode ? t('common.save') : t('stock.addItem')}
             </Button>
           </div>
         </form>
