@@ -20,7 +20,7 @@ import {
   TbCoins,
   TbPlayerPause,
   TbPlayerPlay,
-  TbLockOpen,
+  TbNotebook,
 } from 'react-icons/tb';
 import { ReceiptDialog, CompletedSaleData } from './receipt-dialog';
 import { HeldCartsDialog } from './held-carts-dialog';
@@ -364,7 +364,7 @@ export function CartPanel() {
                   : 'text-neutral-600 hover:text-neutral-900'
               }`}
             >
-              <TbLockOpen className="h-3.5 w-3.5" />
+              <TbNotebook className="h-3.5 w-3.5" />
               <span>Crédit</span>
             </button>
 
@@ -399,7 +399,7 @@ export function CartPanel() {
           {paymentMethod === 'credit' && (
             <div className="rounded-2xl border border-amber-200 bg-amber-50/70 p-3 space-y-1.5 animate-in fade-in">
               <Label className="text-xs font-bold text-amber-900 flex items-center gap-1">
-                <TbLockOpen className="h-3.5 w-3.5 text-amber-700 stroke-[2.2]" />
+                <TbNotebook className="h-3.5 w-3.5 text-amber-700 stroke-[2.2]" />
                 Sélectionner le Client au Carnet *
               </Label>
               <select

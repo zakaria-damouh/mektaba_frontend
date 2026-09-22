@@ -7,21 +7,21 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
-  ChevronDown,
-  ChevronUp,
-  Receipt,
-  Banknote,
-  CreditCard,
-  Building,
-  Clock,
-  Package,
-  RotateCcw,
-  AlertTriangle,
-  Loader2,
-  BookOpen,
-  Printer,
-  Share2,
-} from 'lucide-react';
+  TbChevronDown,
+  TbChevronUp,
+  TbReceipt,
+  TbCash,
+  TbCreditCard,
+  TbBuildingBank,
+  TbNotebook,
+  TbClock,
+  TbPackage,
+  TbRotate,
+  TbAlertTriangle,
+  TbLoader2,
+  TbPrinter,
+  TbBrandWhatsapp,
+} from 'react-icons/tb';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -144,13 +144,13 @@ export function SalesList({ sales, isLoading }: SalesListProps) {
   const getPaymentIcon = (method: string) => {
     switch (method) {
       case 'card':
-        return <CreditCard className="h-3.5 w-3.5" />;
+        return <TbCreditCard className="h-3.5 w-3.5 stroke-[2.2]" />;
       case 'transfer':
-        return <Building className="h-3.5 w-3.5" />;
+        return <TbBuildingBank className="h-3.5 w-3.5 stroke-[2.2]" />;
       case 'credit':
-        return <BookOpen className="h-3.5 w-3.5" />;
+        return <TbNotebook className="h-3.5 w-3.5 stroke-[2.2]" />;
       default:
-        return <Banknote className="h-3.5 w-3.5" />;
+        return <TbCash className="h-3.5 w-3.5 stroke-[2.2]" />;
     }
   };
 
@@ -169,18 +169,20 @@ export function SalesList({ sales, isLoading }: SalesListProps) {
 
   if (isLoading) {
     return (
-      <div className="flex h-64 items-center justify-center rounded-2xl border border-slate-200 bg-white">
-        <p className="text-sm text-slate-400">Chargement de l'historique...</p>
+      <div className="flex h-64 items-center justify-center rounded-3xl border border-neutral-200/90 bg-white">
+        <TbLoader2 className="h-8 w-8 animate-spin text-emerald-600" />
       </div>
     );
   }
 
   if (sales.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center rounded-2xl border border-slate-200 bg-white">
-        <Receipt className="h-12 w-12 text-slate-300" />
-        <h3 className="mt-2 text-sm font-semibold text-slate-900">Aucune vente enregistrée</h3>
-        <p className="mt-1 text-xs text-slate-500">
+      <div className="flex flex-col items-center justify-center py-20 text-center rounded-3xl border border-neutral-200/90 bg-white">
+        <div className="h-12 w-12 rounded-2xl bg-neutral-100 flex items-center justify-center text-neutral-400 mb-2">
+          <TbReceipt className="h-6 w-6 stroke-[1.8]" />
+        </div>
+        <h3 className="text-sm font-bold text-neutral-900">Aucune vente enregistrée</h3>
+        <p className="mt-1 text-xs text-neutral-400">
           Les ventes validées depuis la caisse apparaîtront ici.
         </p>
       </div>
@@ -196,43 +198,48 @@ export function SalesList({ sales, isLoading }: SalesListProps) {
         saleData={saleForReceipt}
       />
 
-      {/* Cancellation Dialog */}
+      {/* Airbnb Rounded-3xl Cancellation Dialog */}
       <AlertDialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
-        <AlertDialogContent className="max-w-md bg-white rounded-3xl p-6">
+        <AlertDialogContent className="max-w-md bg-white rounded-3xl p-6 sm:p-7 border border-neutral-200">
           <AlertDialogHeader>
-            <div className="flex items-center gap-2 text-rose-600">
-              <AlertTriangle className="h-5 w-5" />
-              <AlertDialogTitle className="text-base font-bold text-slate-900">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-100 text-rose-600">
+                <TbAlertTriangle className="h-5 w-5 stroke-[2.2]" />
+              </div>
+              <AlertDialogTitle className="text-base font-black text-neutral-900">
                 Annuler le Ticket #{saleToCancel?.receipt_number} ?
               </AlertDialogTitle>
             </div>
-            <AlertDialogDescription className="text-xs text-slate-600 pt-1 space-y-2">
+            <AlertDialogDescription className="text-xs text-neutral-600 pt-2 space-y-2 leading-relaxed">
               <p>
                 Cette action va <strong>réintégrer automatiquement les articles</strong> dans votre stock physique et déduire{' '}
-                <strong className="text-slate-900">{saleToCancel?.total_amount.toFixed(2)} DH</strong> du total de la journée.
+                <strong className="text-neutral-900">{saleToCancel?.total_amount.toFixed(2)} DH</strong> du total de la journée.
               </p>
               {saleToCancel?.payment_method === 'credit' && (
-                <p className="text-amber-800 font-semibold bg-amber-50 p-2 rounded-xl border border-amber-200">
-                  ⚠️ Ce ticket était à crédit. Le montant sera déduit automatiquement du solde du client.
+                <p className="text-amber-800 font-bold bg-amber-50 p-2.5 rounded-2xl border border-amber-200/80">
+                   Ce ticket était à crédit. Le montant sera déduit automatiquement du solde du client.
                 </p>
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
 
           <div className="space-y-1.5 pt-2">
-            <label className="text-xs font-semibold text-slate-700">
+            <label className="text-xs font-bold text-neutral-700">
               Motif de l'annulation
             </label>
             <Input
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
               placeholder="ex: Client a changé d'avis, erreur de saisie..."
-              className="bg-white text-xs"
+              className="bg-white text-xs rounded-xl border-neutral-200 focus-visible:ring-rose-500/10 focus-visible:border-rose-500"
             />
           </div>
 
-          <AlertDialogFooter className="pt-2">
-            <AlertDialogCancel disabled={cancelSaleMutation.isPending}>
+          <AlertDialogFooter className="pt-3">
+            <AlertDialogCancel
+              disabled={cancelSaleMutation.isPending}
+              className="rounded-full px-5 text-xs font-bold border-neutral-200 hover:bg-neutral-100"
+            >
               Fermer
             </AlertDialogCancel>
             <AlertDialogAction
@@ -246,12 +253,12 @@ export function SalesList({ sales, isLoading }: SalesListProps) {
                 }
               }}
               disabled={cancelSaleMutation.isPending}
-              className="bg-rose-600 hover:bg-rose-700 text-white font-bold gap-1.5 cursor-pointer"
+              className="rounded-full px-6 text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white gap-1.5 cursor-pointer shadow-sm shadow-rose-600/20"
             >
               {cancelSaleMutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <TbLoader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <RotateCcw className="h-4 w-4" />
+                <TbRotate className="h-4 w-4 stroke-[2.2]" />
               )}
               Confirmer l'annulation
             </AlertDialogAction>
@@ -273,53 +280,55 @@ export function SalesList({ sales, isLoading }: SalesListProps) {
           return (
             <div
               key={sale.id}
-              className={`rounded-2xl border transition-all overflow-hidden ${
+              className={`rounded-3xl border transition-all overflow-hidden ${
                 isCancelled
                   ? 'border-rose-200 bg-rose-50/20 opacity-85'
-                  : 'border-slate-200 bg-white shadow-xs'
+                  : 'border-neutral-200/90 bg-white shadow-xs hover:border-emerald-300 hover:shadow-md'
               }`}
             >
               {/* Row Header */}
               <button
                 type="button"
                 onClick={() => toggleExpand(sale.id)}
-                className="w-full flex items-center justify-between p-4 text-left hover:bg-slate-50/70 transition-colors cursor-pointer"
+                className="w-full flex items-center justify-between p-4 sm:p-5 text-left transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-3">
                   <div
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${
                       isCancelled
                         ? 'bg-rose-100 text-rose-600'
-                        : 'bg-slate-100 text-slate-700'
+                        : 'bg-neutral-100 text-neutral-700'
                     }`}
                   >
-                    <Receipt className="h-5 w-5" />
+                    <TbReceipt className="h-5 w-5 stroke-[2.2]" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
                       <span
-                        className={`font-bold text-sm ${
-                          isCancelled ? 'line-through text-slate-500' : 'text-slate-900'
+                        className={`font-black text-sm tracking-tight ${
+                          isCancelled ? 'line-through text-neutral-400' : 'text-neutral-900'
                         }`}
                       >
                         Ticket #{sale.receipt_number}
                       </span>
 
-                      <Badge variant="outline" className="text-[11px] gap-1 font-medium bg-slate-50">
+                      {/* Payment method pill */}
+                      <Badge variant="outline" className="rounded-full text-[11px] gap-1 font-bold bg-neutral-50 border-neutral-200/80 px-2.5 py-0.5">
                         {getPaymentIcon(sale.payment_method)}
                         {getPaymentLabel(sale.payment_method)}
                       </Badge>
 
+                      {/* Cancelled badge */}
                       {isCancelled && (
-                        <Badge variant="destructive" className="bg-rose-600 text-white font-black text-[10px]">
+                        <Badge variant="destructive" className="rounded-full bg-rose-600 text-white font-black text-[10px] px-2.5 py-0.5">
                           ANNULÉ
                         </Badge>
                       )}
                     </div>
 
-                    <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-400">
+                    <div className="flex items-center gap-2 mt-1 text-xs text-neutral-400 font-medium">
                       <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
+                        <TbClock className="h-3 w-3 stroke-[2]" />
                         {formatTime(sale.created_at)}
                       </span>
                       <span>•</span>
@@ -327,7 +336,7 @@ export function SalesList({ sales, isLoading }: SalesListProps) {
                       {sale.customer && (
                         <>
                           <span>•</span>
-                          <span className="font-semibold text-indigo-600">
+                          <span className="font-extrabold text-emerald-700">
                             {sale.customer.name}
                           </span>
                         </>
@@ -340,43 +349,44 @@ export function SalesList({ sales, isLoading }: SalesListProps) {
                   <div className="text-right">
                     <div
                       className={`font-black text-base ${
-                        isCancelled ? 'line-through text-slate-400' : 'text-slate-900'
+                        isCancelled ? 'line-through text-neutral-400' : 'text-neutral-900'
                       }`}
                     >
-                      {sale.total_amount.toFixed(2)} DH
+                      {sale.total_amount.toFixed(2)}{' '}
+                      <span className="text-xs font-bold text-emerald-600">DH</span>
                     </div>
                     {!isCancelled && (
-                      <div className="text-[11px] text-emerald-600 font-semibold">
+                      <div className="text-[11px] text-emerald-700 font-bold">
                         +{saleProfit.toFixed(2)} DH marge
                       </div>
                     )}
                   </div>
 
                   {isExpanded ? (
-                    <ChevronUp className="h-4 w-4 text-slate-400" />
+                    <TbChevronUp className="h-4 w-4 text-neutral-400 stroke-[2.5]" />
                   ) : (
-                    <ChevronDown className="h-4 w-4 text-slate-400" />
+                    <TbChevronDown className="h-4 w-4 text-neutral-400 stroke-[2.5]" />
                   )}
                 </div>
               </button>
 
               {/* Expandable Details */}
               {isExpanded && (
-                <div className="border-t border-slate-100 bg-slate-50/50 p-4 space-y-3">
+                <div className="border-t border-neutral-100 bg-neutral-50/50 p-4 sm:p-5 space-y-3">
                   {/* Cancellation Alert Notice */}
                   {isCancelled && (
-                    <div className="rounded-xl bg-rose-100/70 p-3 text-xs text-rose-900 border border-rose-200">
-                      <div className="font-bold flex items-center gap-1.5">
-                        <RotateCcw className="h-3.5 w-3.5" />
+                    <div className="rounded-2xl bg-rose-100/70 p-3.5 text-xs text-rose-900 border border-rose-200 space-y-0.5">
+                      <div className="font-black flex items-center gap-1.5">
+                        <TbRotate className="h-3.5 w-3.5 stroke-[2.5]" />
                         Vente annulée le {formatTime(sale.cancelled_at || sale.created_at)}
                       </div>
-                      <div className="text-[11px] text-rose-800 mt-0.5">
+                      <div className="text-[11px] text-rose-800 font-medium">
                         Motif : {sale.cancellation_reason || 'Retour article'} (Articles réintégrés au stock).
                       </div>
                     </div>
                   )}
 
-                  <div className="text-xs font-semibold text-slate-700 uppercase tracking-wider">
+                  <div className="text-[10px] font-extrabold text-neutral-400 uppercase tracking-wider">
                     Articles sur ce ticket
                   </div>
 
@@ -388,26 +398,26 @@ export function SalesList({ sales, isLoading }: SalesListProps) {
                       return (
                         <div
                           key={item.id}
-                          className="flex items-center justify-between rounded-xl bg-white p-2.5 border border-slate-100 text-xs"
+                          className="flex items-center justify-between rounded-xl bg-white p-2.5 border border-neutral-100 text-xs shadow-2xs"
                         >
                           <div className="flex items-center gap-2 min-w-0">
-                            <Package className="h-4 w-4 text-slate-400 shrink-0" />
+                            <TbPackage className="h-4 w-4 text-neutral-400 shrink-0 stroke-[2]" />
                             <div className="truncate">
-                              <span className="font-semibold text-slate-900">
+                              <span className="font-bold text-neutral-900">
                                 {item.product_name}
                               </span>
-                              <span className="text-slate-400 ml-2">
+                              <span className="text-neutral-400 font-medium ml-2">
                                 (x{item.quantity} à {item.unit_sell_price.toFixed(2)} DH)
                               </span>
                             </div>
                           </div>
 
                           <div className="text-right shrink-0">
-                            <div className="font-bold text-slate-900">
+                            <div className="font-black text-neutral-900">
                               {item.total_price.toFixed(2)} DH
                             </div>
                             {!isCancelled && (
-                              <div className="text-[10px] text-emerald-600">
+                              <div className="text-[10px] font-bold text-emerald-700">
                                 +{itemMargin.toFixed(2)} DH
                               </div>
                             )}
@@ -418,44 +428,43 @@ export function SalesList({ sales, isLoading }: SalesListProps) {
                   </div>
 
                   {/* Subtotal & Discount */}
-                  <div className="border-t border-slate-200/70 pt-2 space-y-1 text-xs text-slate-600">
+                  <div className="border-t border-neutral-200/70 pt-2 space-y-1 text-xs text-neutral-600">
                     <div className="flex justify-between">
-                      <span>Sous-total:</span>
-                      <span>{sale.subtotal.toFixed(2)} DH</span>
+                      <span className="text-neutral-400 font-medium">Sous-total :</span>
+                      <span className="font-bold text-neutral-800">{sale.subtotal.toFixed(2)} DH</span>
                     </div>
                     {sale.discount_amount > 0 && (
-                      <div className="flex justify-between text-rose-600 font-medium">
-                        <span>Remise accordée:</span>
+                      <div className="flex justify-between text-rose-600 font-bold">
+                        <span>Remise accordée :</span>
                         <span>-{sale.discount_amount.toFixed(2)} DH</span>
                       </div>
                     )}
                     {sale.notes && (
-                      <div className="pt-1 text-[11px] text-slate-400 italic">
-                        Note: {sale.notes}
+                      <div className="pt-1 text-[11px] text-neutral-400 italic">
+                        Note : {sale.notes}
                       </div>
                     )}
                   </div>
 
                   {/* ACTION BAR: Reprint, WhatsApp & Cancel */}
-                  <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-200">
-                    {/* Reprint / WhatsApp Buttons */}
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-neutral-200">
+                    {/* Reprint / WhatsApp Pill Buttons */}
                     <div className="flex items-center gap-2">
                       <Button
                         size="sm"
-                        variant="outline"
                         onClick={() => handleOpenReceiptModal(sale)}
-                        className="text-xs font-bold border-slate-300 hover:bg-slate-100 text-slate-800 gap-1.5 cursor-pointer"
+                        className="h-8 rounded-full px-4 text-xs font-bold bg-neutral-900 hover:bg-neutral-800 text-white gap-1.5 cursor-pointer shadow-2xs"
                       >
-                        <Printer className="h-3.5 w-3.5" />
+                        <TbPrinter className="h-3.5 w-3.5 stroke-[2.2]" />
                         Imprimer le Bon
                       </Button>
 
                       <Button
                         size="sm"
                         onClick={() => handleOpenReceiptModal(sale)}
-                        className="text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 cursor-pointer"
+                        className="h-8 rounded-full px-4 text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 shadow-sm shadow-emerald-600/20 cursor-pointer"
                       >
-                        <Share2 className="h-3.5 w-3.5" />
+                        <TbBrandWhatsapp className="h-4 w-4 stroke-[2.2]" />
                         WhatsApp
                       </Button>
                     </div>
@@ -466,9 +475,9 @@ export function SalesList({ sales, isLoading }: SalesListProps) {
                         size="sm"
                         variant="ghost"
                         onClick={(e) => handleOpenCancel(e, sale)}
-                        className="text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 gap-1.5 font-bold cursor-pointer"
+                        className="h-8 rounded-full px-3 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 gap-1.5 font-bold cursor-pointer"
                       >
-                        <RotateCcw className="h-3.5 w-3.5" />
+                        <TbRotate className="h-3.5 w-3.5 stroke-[2.2]" />
                         Annuler ce ticket
                       </Button>
                     )}
