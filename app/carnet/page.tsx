@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import { Customer } from '@/types';
@@ -30,6 +31,8 @@ import { CustomerHistoryDialog } from '@/components/carnet/customer-history-dial
 type FilterTab = 'all' | 'debtors' | 'cleared';
 
 export default function CarnetPage() {
+  const { t, i18n } = useTranslation();
+  const isArabic = (i18n.language || 'fr').startsWith('ar');
   const supabase = createClient();
 
   const [search, setSearch] = useState('');
@@ -58,12 +61,10 @@ export default function CarnetPage() {
     },
   });
 
-  // KPI Calculations
   const totalDebt = customers.reduce((sum, c) => sum + c.current_debt, 0);
   const debtorsCount = customers.filter((c) => c.current_debt > 0).length;
   const topDebtor = customers.find((c) => c.current_debt > 0);
 
-  // Filter Logic
   const filteredCustomers = customers.filter((c) => {
     const matchesSearch =
       c.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -82,7 +83,9 @@ export default function CarnetPage() {
       return;
     }
 
-    const message = `Salam Si ${customer.name},\nMaktaba vous informe que le solde restant sur votre carnet est de *${customer.current_debt.toFixed(2)} DH*.\nMerci de passer à votre convenance pour le règlement.\n_Maktaba POS_`;
+    const message = isArabic
+      ? `السلام عليكم سي ${customer.name}،\nتذكير من المكتبة بأن المبلغ المتبقي بذمتكم في الكناش هو *${customer.current_debt.toFixed(2)} درهم*.\nمرحباً بكم في أي وقت للأداء.\n_Maktaba POS_`
+      : `Salam Si ${customer.name},\nMaktaba vous informe que le solde restant sur votre carnet est de *${customer.current_debt.toFixed(2)} DH*.\nMerci de passer à votre convenance pour le règlement.\n_Maktaba POS_`;
 
     let cleanPhone = customer.phone.replace(/\s+/g, '').replace(/[^0-9]/g, '');
     if (cleanPhone.startsWith('0')) {
@@ -118,14 +121,13 @@ export default function CarnetPage() {
         <div>
           <h1 className="text-2xl font-black tracking-tight text-neutral-900 flex items-center gap-2">
             <TbNotebook className="h-7 w-7 text-emerald-600 stroke-[2.2]" />
-            Le Carnet de Dette
+            {t('carnet.title')}
           </h1>
           <p className="text-xs text-neutral-400 font-medium">
-            Gestion du crédit client, encaissements et rappels WhatsApp
+            {t('carnet.subtitle')}
           </p>
         </div>
 
-        {/* Airbnb Pill Action Button */}
         <Button
           onClick={() => {
             setCustomerToEdit(null);
@@ -134,19 +136,17 @@ export default function CarnetPage() {
           className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full px-5 py-2.5 text-xs font-bold shadow-sm shadow-emerald-600/20 hover:scale-102 transition-all cursor-pointer"
         >
           <TbUserPlus className="h-4 w-4 stroke-[2.5]" />
-          Nouveau Client
+          {t('carnet.newCustomer')}
         </Button>
       </div>
 
-      {/* ======================================================== */}
-      {/* AIRBNB-STYLE KPI METRIC CARDS                            */}
-      {/* ======================================================== */}
+      {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
         {/* Total Debt */}
         <div className="flex flex-col justify-between rounded-3xl border border-rose-200/80 bg-rose-50/40 p-5 shadow-xs hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
           <div className="flex items-center justify-between text-rose-700">
             <span className="text-[11px] font-bold uppercase tracking-wider text-rose-700">
-              Total Dettes Détenues
+              {t('carnet.totalDebts')}
             </span>
             <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-rose-100 text-rose-600 border border-rose-200/60 shadow-xs">
               <TbCurrencyDirham className="h-5 w-5 stroke-[2.2]" />
@@ -158,10 +158,10 @@ export default function CarnetPage() {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })}{' '}
-              <span className="text-xs font-bold text-rose-400">DH</span>
+              <span className="text-xs font-bold text-rose-400">{t('common.dh')}</span>
             </div>
             <div className="mt-1 text-[11px] text-rose-800/80 font-medium">
-              Argent à récupérer dans le quartier
+              {t('carnet.totalDebtsSub')}
             </div>
           </div>
         </div>
@@ -170,7 +170,7 @@ export default function CarnetPage() {
         <div className="flex flex-col justify-between rounded-3xl border border-neutral-200/90 bg-white p-5 shadow-xs hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
           <div className="flex items-center justify-between text-neutral-500">
             <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
-              Clients Débiteurs
+              {t('carnet.debtorClients')}
             </span>
             <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-amber-50 text-amber-700 border border-amber-200/60 shadow-xs">
               <TbUsers className="h-5 w-5 stroke-[2.2]" />
@@ -179,10 +179,10 @@ export default function CarnetPage() {
           <div className="mt-3">
             <div className="text-2xl sm:text-3xl font-black tracking-tight text-neutral-900">
               {debtorsCount}{' '}
-              <span className="text-xs font-bold text-neutral-400">clients</span>
+              <span className="text-xs font-bold text-neutral-400">{t('carnet.debtorClientsSub')}</span>
             </div>
             <div className="mt-1 text-[11px] text-neutral-400 font-medium">
-              sur {customers.length} clients enregistrés
+              {t('carnet.tabAll')} {customers.length}
             </div>
           </div>
         </div>
@@ -191,7 +191,7 @@ export default function CarnetPage() {
         <div className="flex flex-col justify-between rounded-3xl border border-neutral-200/90 bg-white p-5 shadow-xs hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
           <div className="flex items-center justify-between text-neutral-500">
             <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
-              Plus Forte Dette
+              {t('carnet.topDebtor')}
             </span>
             <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-200/60 shadow-xs">
               <TbAlertCircle className="h-5 w-5 stroke-[2.2]" />
@@ -199,25 +199,22 @@ export default function CarnetPage() {
           </div>
           <div className="mt-3">
             <div className="text-lg font-black text-neutral-900 truncate">
-              {topDebtor ? topDebtor.name : 'Aucun débiteur'}
+              {topDebtor ? topDebtor.name : t('carnet.noDebtors')}
             </div>
             <div className="mt-0.5 text-sm font-black text-rose-600">
-              {topDebtor ? `${topDebtor.current_debt.toFixed(2)} DH` : '0.00 DH'}
+              {topDebtor ? `${topDebtor.current_debt.toFixed(2)} ${t('common.dh')}` : `0.00 ${t('common.dh')}`}
             </div>
           </div>
         </div>
       </div>
 
-      {/* ======================================================== */}
-      {/* SEARCH CAPSULE & SEGMENTED TABS                          */}
-      {/* ======================================================== */}
+      {/* Search & Tabs */}
       <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
-        {/* Search Capsule */}
-        <div className="flex-1 flex items-center rounded-full border border-neutral-200/90 bg-white p-1 pl-4 shadow-xs hover:shadow-sm transition-all focus-within:border-emerald-600 focus-within:ring-2 focus-within:ring-emerald-600/10">
+        <div className="flex-1 flex items-center rounded-full border border-neutral-200/90 bg-white p-1 ps-4 shadow-xs hover:shadow-sm transition-all focus-within:border-emerald-600 focus-within:ring-2 focus-within:ring-emerald-600/10">
           <TbSearch className="h-4 w-4 shrink-0 text-neutral-400 stroke-[2.2]" />
           <input
             type="text"
-            placeholder="Rechercher par nom de client ou téléphone..."
+            placeholder={t('carnet.searchPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full bg-transparent px-2 text-xs font-medium text-neutral-800 placeholder-neutral-400 focus:outline-hidden"
@@ -226,14 +223,13 @@ export default function CarnetPage() {
             <button
               type="button"
               onClick={() => setSearch('')}
-              className="p-1 text-neutral-400 hover:text-neutral-600 cursor-pointer mr-1"
+              className="p-1 text-neutral-400 hover:text-neutral-600 cursor-pointer me-1"
             >
               <TbX className="h-3.5 w-3.5" />
             </button>
           )}
         </div>
 
-        {/* Segmented Filter Pills */}
         <div className="inline-flex h-10 items-center rounded-full border border-neutral-200/90 bg-white p-1 shadow-xs shrink-0">
           <button
             type="button"
@@ -244,7 +240,7 @@ export default function CarnetPage() {
                 : 'text-neutral-500 hover:text-neutral-900'
             }`}
           >
-            Avec Dette ({debtorsCount})
+            {t('carnet.tabWithDebt')} ({debtorsCount})
           </button>
           <button
             type="button"
@@ -255,7 +251,7 @@ export default function CarnetPage() {
                 : 'text-neutral-500 hover:text-neutral-900'
             }`}
           >
-            Tous ({customers.length})
+            {t('carnet.tabAll')} ({customers.length})
           </button>
           <button
             type="button"
@@ -266,14 +262,12 @@ export default function CarnetPage() {
                 : 'text-neutral-500 hover:text-neutral-900'
             }`}
           >
-            À Jour (0 DH)
+            {t('carnet.tabSettled')}
           </button>
         </div>
       </div>
 
-      {/* ======================================================== */}
-      {/* CUSTOMER CARDS GRID                                      */}
-      {/* ======================================================== */}
+      {/* Customer Cards Grid */}
       {isLoading ? (
         <div className="flex h-64 items-center justify-center rounded-3xl border border-neutral-200/90 bg-white">
           <TbLoader2 className="h-8 w-8 animate-spin text-emerald-600" />
@@ -283,7 +277,7 @@ export default function CarnetPage() {
           <div className="h-12 w-12 rounded-2xl bg-neutral-100 flex items-center justify-center text-neutral-400 mb-2">
             <TbNotebook className="h-6 w-6 stroke-[1.8]" />
           </div>
-          <p className="text-xs font-bold text-neutral-700">Aucun client trouvé</p>
+          <p className="text-xs font-bold text-neutral-700">{t('carnet.noDebtors')}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
@@ -302,21 +296,20 @@ export default function CarnetPage() {
                         {customer.name}
                       </h3>
                       {customer.phone && (
-                        <div className="flex items-center gap-1.5 text-xs text-neutral-400 font-medium mt-1">
+                        <div className="flex items-center gap-1.5 text-xs text-neutral-400 font-medium mt-1 font-mono">
                           <TbPhone className="h-3.5 w-3.5 text-neutral-400 stroke-[2]" />
                           <span>{customer.phone}</span>
                         </div>
                       )}
                     </div>
 
-                    {/* Balance Pill */}
                     {hasDebt ? (
                       <Badge className="rounded-full bg-rose-50 text-rose-700 border border-rose-200/80 font-black text-xs px-3 py-1 shadow-2xs">
-                        {customer.current_debt.toFixed(2)} DH
+                        {customer.current_debt.toFixed(2)} {t('common.dh')}
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="rounded-full bg-emerald-50 text-emerald-700 border-emerald-200 font-bold text-xs px-3 py-1">
-                        À jour
+                        {t('carnet.settledBadge')}
                       </Badge>
                     )}
                   </div>
@@ -338,7 +331,7 @@ export default function CarnetPage() {
                         setIsHistoryOpen(true);
                       }}
                       className="p-2 hover:text-emerald-700 hover:bg-emerald-50 rounded-full transition-colors cursor-pointer"
-                      title="Historique du carnet"
+                      title={t('carnet.historyTooltip')}
                     >
                       <TbHistory className="h-4 w-4 stroke-[2.2]" />
                     </button>
@@ -350,7 +343,7 @@ export default function CarnetPage() {
                         setIsCustomerDialogOpen(true);
                       }}
                       className="p-2 hover:text-neutral-900 hover:bg-neutral-100 rounded-full transition-colors cursor-pointer"
-                      title="Modifier les infos"
+                      title={t('carnet.editTooltip')}
                     >
                       <TbPencil className="h-4 w-4 stroke-[2.2]" />
                     </button>
@@ -360,14 +353,13 @@ export default function CarnetPage() {
                         type="button"
                         onClick={() => handleSendWhatsAppReminder(customer)}
                         className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-full transition-colors cursor-pointer"
-                        title="Envoyer un rappel poli sur WhatsApp"
+                        title={t('carnet.whatsappTooltip')}
                       >
                         <TbBrandWhatsapp className="h-4 w-4 stroke-[2.2]" />
                       </button>
                     )}
                   </div>
 
-                  {/* Encaisser Button */}
                   {hasDebt && (
                     <Button
                       size="sm"
@@ -378,7 +370,7 @@ export default function CarnetPage() {
                       className="h-8 rounded-full px-4 gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-sm shadow-emerald-600/20 cursor-pointer"
                     >
                       <TbCoins className="h-3.5 w-3.5 stroke-[2.2]" />
-                      Encaisser
+                      {t('carnet.collectBtn')}
                     </Button>
                   )}
                 </div>

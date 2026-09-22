@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import { Customer } from '@/types';
@@ -33,6 +34,7 @@ export function PaymentDialog({
   open,
   onOpenChange,
 }: PaymentDialogProps) {
+  const { t } = useTranslation();
   const supabase = createClient();
   const queryClient = useQueryClient();
 
@@ -40,7 +42,6 @@ export function PaymentDialog({
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | 'transfer'>('cash');
   const [notes, setNotes] = useState('');
 
-  // All Hooks declared first
   const recordPaymentMutation = useMutation({
     mutationFn: async () => {
       if (!customer) throw new Error('Client introuvable');
@@ -97,10 +98,10 @@ export function PaymentDialog({
             </div>
             <div>
               <DialogTitle className="text-base font-black tracking-tight text-neutral-900">
-                Encaisser un Règlement
+                {t('carnet.collectTitle')}
               </DialogTitle>
               <p className="text-[11px] text-neutral-400 font-medium">
-                Client : <span className="font-extrabold text-neutral-800">{customer.name}</span>
+                {t('carnet.clientLabel')} <span className="font-extrabold text-neutral-800">{customer.name}</span>
               </p>
             </div>
           </div>
@@ -109,11 +110,11 @@ export function PaymentDialog({
         {/* Current Debt Card */}
         <div className="rounded-2xl bg-amber-50/80 border border-amber-200/80 p-4 text-center space-y-1">
           <span className="text-[11px] font-bold uppercase tracking-wider text-amber-800">
-            Dette Actuelle sur le Carnet
+            {t('carnet.currentDebtLabel')}
           </span>
           <div className="text-2xl sm:text-3xl font-black text-amber-950">
             {customer.current_debt.toFixed(2)}{' '}
-            <span className="text-xs font-extrabold text-amber-700">DH</span>
+            <span className="text-xs font-extrabold text-amber-700">{t('common.dh')}</span>
           </div>
         </div>
 
@@ -121,7 +122,7 @@ export function PaymentDialog({
           {/* Quick Pay Preset Pills */}
           <div className="space-y-1.5">
             <span className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400">
-              Règlement rapide
+              {t('carnet.quickPay')}
             </span>
             <div className="flex flex-wrap gap-1.5">
               <button
@@ -129,7 +130,7 @@ export function PaymentDialog({
                 onClick={handlePayFull}
                 className="flex-1 rounded-full px-3 py-1.5 text-xs font-extrabold border border-emerald-200 bg-emerald-50/80 text-emerald-800 hover:bg-emerald-100 active:scale-95 transition-all cursor-pointer shadow-2xs"
               >
-                Tout régler ({customer.current_debt.toFixed(0)} DH)
+                {t('carnet.payFull')} ({customer.current_debt.toFixed(0)} {t('common.dh')})
               </button>
               {[50, 100, 200].map((preset) => (
                 <button
@@ -138,7 +139,7 @@ export function PaymentDialog({
                   onClick={() => setAmount(preset.toString())}
                   className="rounded-full px-3 py-1.5 text-xs font-bold border border-neutral-200/90 bg-neutral-50/70 text-neutral-700 hover:bg-neutral-100 active:scale-95 transition-all cursor-pointer"
                 >
-                  {preset} DH
+                  {preset} {t('common.dh')}
                 </button>
               ))}
             </div>
@@ -147,7 +148,7 @@ export function PaymentDialog({
           {/* Amount Input */}
           <div className="space-y-1.5">
             <Label htmlFor="pay_amount" className="text-xs font-bold text-neutral-700">
-              Montant versé par le client (DH) *
+              {t('carnet.paidAmount')}
             </Label>
             <Input
               id="pay_amount"
@@ -162,9 +163,9 @@ export function PaymentDialog({
             />
           </div>
 
-          {/* Segmented Payment Method Pills */}
+          {/* Payment Method Pills */}
           <div className="space-y-1.5">
-            <Label className="text-xs font-bold text-neutral-700">Mode de Règlement</Label>
+            <Label className="text-xs font-bold text-neutral-700">{t('carnet.paymentMethod')}</Label>
             <div className="grid grid-cols-3 gap-1.5 p-1 bg-neutral-100 rounded-full">
               <button
                 type="button"
@@ -176,7 +177,7 @@ export function PaymentDialog({
                 }`}
               >
                 <TbCash className="h-3.5 w-3.5" />
-                <span>Espèces</span>
+                <span>{t('caisse.cash')}</span>
               </button>
               <button
                 type="button"
@@ -188,7 +189,7 @@ export function PaymentDialog({
                 }`}
               >
                 <TbCreditCard className="h-3.5 w-3.5" />
-                <span>Carte</span>
+                <span>{t('caisse.card')}</span>
               </button>
               <button
                 type="button"
@@ -200,7 +201,7 @@ export function PaymentDialog({
                 }`}
               >
                 <TbBuildingBank className="h-3.5 w-3.5" />
-                <span>Virement</span>
+                <span>{t('caisse.transfer')}</span>
               </button>
             </div>
           </div>
@@ -208,11 +209,11 @@ export function PaymentDialog({
           {/* Notes */}
           <div className="space-y-1.5">
             <Label htmlFor="pay_notes" className="text-xs font-bold text-neutral-700">
-              Remarque (Optionnel)
+              {t('carnet.remarkOptional')}
             </Label>
             <Input
               id="pay_notes"
-              placeholder="ex: Avance rentrée, donné par son fils..."
+              placeholder="ex: Avance, donné par son fils..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className="bg-white text-xs rounded-xl border-neutral-200 focus-visible:ring-emerald-600/10 focus-visible:border-emerald-600"
@@ -227,7 +228,7 @@ export function PaymentDialog({
               onClick={() => onOpenChange(false)}
               className="rounded-full px-5 text-xs font-bold border-neutral-200 hover:bg-neutral-100"
             >
-              Annuler
+              {t('common.cancel')}
             </Button>
             <Button
               type="submit"
@@ -239,7 +240,7 @@ export function PaymentDialog({
               ) : (
                 <TbCheck className="h-4 w-4 stroke-[3]" />
               )}
-              Valider l'encaissement
+              {t('carnet.validateCollection')}
             </Button>
           </div>
         </form>

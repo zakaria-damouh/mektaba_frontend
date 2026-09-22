@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import { Customer } from '@/types';
@@ -32,6 +33,7 @@ export function CustomerDialog({
   onOpenChange,
   customerToEdit,
 }: CustomerDialogProps) {
+  const { t } = useTranslation();
   const supabase = createClient();
   const queryClient = useQueryClient();
 
@@ -102,10 +104,10 @@ export function CustomerDialog({
             </div>
             <div>
               <DialogTitle className="text-base font-black tracking-tight text-neutral-900">
-                {isEditMode ? 'Modifier la Fiche Client' : 'Nouveau Client au Carnet'}
+                {isEditMode ? t('carnet.editCustomer') : t('carnet.newCustomer')}
               </DialogTitle>
               <p className="text-[11px] text-neutral-400 font-medium">
-                Gestion des crédits et coordonnées WhatsApp
+                {t('carnet.clientCardSubtitle')}
               </p>
             </div>
           </div>
@@ -115,17 +117,17 @@ export function CustomerDialog({
           {/* Customer Name */}
           <div className="space-y-1.5">
             <Label htmlFor="cust_name" className="text-xs font-bold text-neutral-700">
-              Nom complet ou Surnom *
+              {t('carnet.fullNameOrNickname')}
             </Label>
             <div className="relative">
-              <TbUser className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400 stroke-[2.2]" />
+              <TbUser className="absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400 stroke-[2.2]" />
               <Input
                 id="cust_name"
                 required
-                placeholder="ex: Si Mohamed (Prof Maths), Famille Bennani"
+                placeholder="ex: Si Mohamed (Prof), Famille Bennani"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="pl-10 bg-white rounded-xl border-neutral-200 text-xs focus-visible:ring-emerald-600/10 focus-visible:border-emerald-600"
+                className="ps-10 bg-white rounded-xl border-neutral-200 text-xs focus-visible:ring-emerald-600/10 focus-visible:border-emerald-600"
               />
             </div>
           </div>
@@ -133,16 +135,16 @@ export function CustomerDialog({
           {/* Customer Phone */}
           <div className="space-y-1.5">
             <Label htmlFor="cust_phone" className="text-xs font-bold text-neutral-700">
-              Numéro de Téléphone (Pour rappels WhatsApp)
+              {t('carnet.phoneForWhatsApp')}
             </Label>
             <div className="relative">
-              <TbPhone className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400 stroke-[2.2]" />
+              <TbPhone className="absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400 stroke-[2.2]" />
               <Input
                 id="cust_phone"
                 placeholder="ex: 06 12 34 56 78"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="pl-10 bg-white rounded-xl border-neutral-200 text-xs focus-visible:ring-emerald-600/10 focus-visible:border-emerald-600"
+                className="ps-10 bg-white rounded-xl border-neutral-200 text-xs focus-visible:ring-emerald-600/10 focus-visible:border-emerald-600 font-mono"
               />
             </div>
           </div>
@@ -150,16 +152,16 @@ export function CustomerDialog({
           {/* Notes */}
           <div className="space-y-1.5">
             <Label htmlFor="cust_notes" className="text-xs font-bold text-neutral-700">
-              Remarque / Adresse
+              {t('carnet.remarkOrAddress')}
             </Label>
             <div className="relative">
-              <TbFileText className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400 stroke-[2.2]" />
+              <TbFileText className="absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400 stroke-[2.2]" />
               <Input
                 id="cust_notes"
-                placeholder="ex: Voisin d'en face, Règle à la fin du mois..."
+                placeholder="ex: Voisin en face, Lycée..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="pl-10 bg-white rounded-xl border-neutral-200 text-xs focus-visible:ring-emerald-600/10 focus-visible:border-emerald-600"
+                className="ps-10 bg-white rounded-xl border-neutral-200 text-xs focus-visible:ring-emerald-600/10 focus-visible:border-emerald-600"
               />
             </div>
           </div>
@@ -169,10 +171,10 @@ export function CustomerDialog({
             <div className="space-y-1.5 rounded-2xl bg-amber-50/70 border border-amber-200/80 p-3.5">
               <Label htmlFor="cust_debt" className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
                 <TbCoins className="h-4 w-4 text-amber-700 stroke-[2.2]" />
-                Ancienne dette à reporter (Optionnel)
+                {t('carnet.oldDebtTransfer')}
               </Label>
               <p className="text-[11px] text-amber-800/80 leading-snug">
-                Si ce client a déjà une dette sur votre ancien carnet papier, inscrivez-la ici.
+                {t('carnet.oldDebtNotice')}
               </p>
               <Input
                 id="cust_debt"
@@ -194,7 +196,7 @@ export function CustomerDialog({
               onClick={() => onOpenChange(false)}
               className="rounded-full px-5 text-xs font-bold border-neutral-200 hover:bg-neutral-100"
             >
-              Annuler
+              {t('common.cancel')}
             </Button>
             <Button
               type="submit"
@@ -204,7 +206,7 @@ export function CustomerDialog({
               {saveCustomerMutation.isPending && (
                 <TbLoader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              {isEditMode ? 'Enregistrer' : 'Créer la fiche'}
+              {isEditMode ? t('common.save') : t('carnet.createCard')}
             </Button>
           </div>
         </form>
