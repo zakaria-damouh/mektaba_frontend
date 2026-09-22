@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import { printElement } from '@/lib/print';
@@ -34,13 +35,13 @@ export function CloseRegisterDialog({
   onOpenChange,
   todaySales,
 }: CloseRegisterDialogProps) {
+  const { t } = useTranslation();
   const supabase = createClient();
   const queryClient = useQueryClient();
 
   const [countedCash, setCountedCash] = useState('');
   const [notes, setNotes] = useState('');
 
-  // Filter completed (non-cancelled) sales
   const completedSales = todaySales.filter((s) => s.status !== 'cancelled');
 
   const totalSalesCount = completedSales.length;
@@ -70,7 +71,6 @@ export function CloseRegisterDialog({
     .filter((s) => s.payment_method === 'credit')
     .reduce((acc, s) => acc + s.total_amount, 0);
 
-  // Variance calculation
   const numCounted = parseFloat(countedCash) || 0;
   const cashDifference = countedCash === '' ? 0 : numCounted - expectedCash;
 
@@ -121,46 +121,44 @@ export function CloseRegisterDialog({
             </div>
             <div>
               <DialogTitle className="text-base font-black tracking-tight text-neutral-900">
-                Clôture de Caisse (Ticket Z)
+                {t('history.closeTitle')}
               </DialogTitle>
               <p className="text-[11px] text-neutral-400 font-medium mt-0.5">
-                Rapprochement financier de fin de journée
+                {t('history.closeSubtitle')}
               </p>
             </div>
           </div>
         </DialogHeader>
 
-        {/* Expected Summary Box */}
         <div className="rounded-2xl border border-neutral-200/80 bg-neutral-50/70 p-4 space-y-3">
           <div className="flex justify-between items-baseline border-b border-neutral-200/70 pb-2.5">
-            <span className="text-xs font-bold text-neutral-500">Espèces Attendu (Caisse)</span>
+            <span className="text-xs font-bold text-neutral-500">{t('history.expectedCash')}</span>
             <span className="text-xl font-black text-neutral-900">
               {expectedCash.toFixed(2)}{' '}
-              <span className="text-xs font-bold text-emerald-600">DH</span>
+              <span className="text-xs font-bold text-emerald-600">{t('common.dh')}</span>
             </span>
           </div>
 
           <div className="grid grid-cols-3 gap-2 text-center text-xs">
             <div className="bg-white rounded-xl p-2.5 border border-neutral-100 shadow-2xs">
-              <div className="text-[10px] text-neutral-400 font-bold uppercase">Carte</div>
-              <div className="font-extrabold text-neutral-900 mt-0.5">{cardTotal.toFixed(0)} DH</div>
+              <div className="text-[10px] text-neutral-400 font-bold uppercase">{t('caisse.card')}</div>
+              <div className="font-extrabold text-neutral-900 mt-0.5">{cardTotal.toFixed(0)} {t('common.dh')}</div>
             </div>
             <div className="bg-white rounded-xl p-2.5 border border-neutral-100 shadow-2xs">
-              <div className="text-[10px] text-neutral-400 font-bold uppercase">Crédit</div>
-              <div className="font-extrabold text-amber-700 mt-0.5">{creditTotal.toFixed(0)} DH</div>
+              <div className="text-[10px] text-neutral-400 font-bold uppercase">{t('caisse.credit')}</div>
+              <div className="font-extrabold text-amber-700 mt-0.5">{creditTotal.toFixed(0)} {t('common.dh')}</div>
             </div>
             <div className="bg-white rounded-xl p-2.5 border border-neutral-100 shadow-2xs">
-              <div className="text-[10px] text-neutral-400 font-bold uppercase">Bénéfice</div>
-              <div className="font-extrabold text-emerald-700 mt-0.5">+{totalProfit.toFixed(0)} DH</div>
+              <div className="text-[10px] text-neutral-400 font-bold uppercase">{t('history.netProfit')}</div>
+              <div className="font-extrabold text-emerald-700 mt-0.5">+{totalProfit.toFixed(0)} {t('common.dh')}</div>
             </div>
           </div>
         </div>
 
-        {/* Physical Cash Count Input */}
         <div className="space-y-2 pt-1">
           <Label htmlFor="counted_cash" className="text-xs font-bold text-neutral-700 flex items-center gap-1.5">
             <TbCoins className="h-4 w-4 text-emerald-600 stroke-[2.2]" />
-            Espèces comptées dans le tiroir-caisse (DH) *
+            {t('history.countedCashLabel')}
           </Label>
           <Input
             id="counted_cash"
@@ -172,7 +170,6 @@ export function CloseRegisterDialog({
             className="text-lg font-black text-neutral-900 bg-white rounded-xl border-neutral-200 focus-visible:ring-emerald-600/10 focus-visible:border-emerald-600"
           />
 
-          {/* Real-time Variance Pill */}
           {countedCash !== '' && (
             <div
               className={`flex items-center justify-between rounded-2xl p-3 text-xs font-bold transition-all ${
@@ -185,22 +182,21 @@ export function CloseRegisterDialog({
             >
               <span>
                 {cashDifference === 0
-                  ? '✓ Caisse Parfaite (Aucun écart)'
+                  ? t('history.perfectRegister')
                   : cashDifference > 0
-                  ? 'Excédent de caisse :'
-                  : 'Manquant de caisse :'}
+                  ? t('history.surplus')
+                  : t('history.shortage')}
               </span>
               <span className="text-sm font-black">
-                {cashDifference > 0 ? `+${cashDifference.toFixed(2)}` : cashDifference.toFixed(2)} DH
+                {cashDifference > 0 ? `+${cashDifference.toFixed(2)}` : cashDifference.toFixed(2)} {t('common.dh')}
               </span>
             </div>
           )}
         </div>
 
-        {/* Closure Note */}
         <div className="space-y-1.5">
           <Label htmlFor="closure_notes" className="text-xs font-bold text-neutral-700">
-            Note de clôture (Optionnel)
+            {t('history.closureNote')}
           </Label>
           <Input
             id="closure_notes"
@@ -211,9 +207,6 @@ export function CloseRegisterDialog({
           />
         </div>
 
-        {/* ======================================================== */}
-        {/* PRINTABLE THERMAL Z-REPORT (Targeted by printElement)    */}
-        {/* ======================================================== */}
         <div className="hidden">
           <div id="printable-z-report" className="font-mono text-xs text-neutral-900 space-y-3">
             <div className="text-center space-y-1 border-b-2 border-dashed border-black pb-2">
@@ -280,7 +273,6 @@ export function CloseRegisterDialog({
           </div>
         </div>
 
-        {/* Footer Action Buttons */}
         <div className="space-y-2 pt-2 border-t border-neutral-100">
           <Button
             type="button"
@@ -293,7 +285,7 @@ export function CloseRegisterDialog({
             ) : (
               <TbPrinter className="h-4 w-4 stroke-[2.2]" />
             )}
-            Enregistrer & Imprimer le Ticket Z
+            {t('history.saveAndPrintZ')}
           </Button>
 
           <Button
@@ -302,7 +294,7 @@ export function CloseRegisterDialog({
             onClick={() => onOpenChange(false)}
             className="w-full text-neutral-400 hover:text-neutral-900 text-xs font-bold rounded-full cursor-pointer"
           >
-            Fermer
+            {t('common.close')}
           </Button>
         </div>
       </DialogContent>

@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslation } from 'react-i18next';
 import { SaleWithItems } from './sales-list';
 import {
   TbTrophy,
@@ -14,6 +15,7 @@ interface SalesInsightsProps {
 }
 
 export function SalesInsights({ sales }: SalesInsightsProps) {
+  const { t } = useTranslation();
   const completedSales = sales.filter((s) => s.status !== 'cancelled');
 
   const productMap = new Map<
@@ -37,7 +39,6 @@ export function SalesInsights({ sales }: SalesInsightsProps) {
         (item.unit_sell_price - item.unit_buy_price) * item.quantity;
       totalPeriodProfit += itemMargin;
 
-      // Group products
       const existingProd = productMap.get(item.product_name) || {
         name: item.product_name,
         quantity: 0,
@@ -49,7 +50,6 @@ export function SalesInsights({ sales }: SalesInsightsProps) {
       existingProd.profit += itemMargin;
       productMap.set(item.product_name, existingProd);
 
-      // Group categories
       const catName =
         item.product?.category?.name ||
         (item.product_id ? 'Général' : 'Services / Vente Libre');
@@ -83,10 +83,10 @@ export function SalesInsights({ sales }: SalesInsightsProps) {
           <TbChartPie className="h-6 w-6 stroke-[1.8]" />
         </div>
         <h3 className="text-sm font-bold text-neutral-900">
-          Pas assez de données
+          {t('history.notEnoughData')}
         </h3>
         <p className="mt-1 text-xs text-neutral-400">
-          Enregistrez des ventes pour afficher les statistiques et le classement.
+          {t('history.notEnoughDataSub')}
         </p>
       </div>
     );
@@ -103,7 +103,6 @@ export function SalesInsights({ sales }: SalesInsightsProps) {
 
   return (
     <div className="space-y-4">
-      {/* Top Banner: Most Profitable Star Product */}
       {topProfitableProduct && (
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 rounded-3xl border border-amber-200/80 bg-linear-to-r from-amber-50/80 via-white to-amber-50/40 p-5 shadow-xs">
           <div className="flex items-center gap-3">
@@ -112,7 +111,7 @@ export function SalesInsights({ sales }: SalesInsightsProps) {
             </div>
             <div>
               <span className="text-[10px] font-black uppercase tracking-wider text-amber-800">
-                Article Star (Plus Gros Bénéfice de la Période)
+                {t('history.starProductBadge')}
               </span>
               <h3 className="text-base font-black tracking-tight text-neutral-900">
                 {topProfitableProduct.name}
@@ -120,26 +119,25 @@ export function SalesInsights({ sales }: SalesInsightsProps) {
             </div>
           </div>
 
-          <div className="flex items-baseline gap-4 text-right">
+          <div className="flex items-baseline gap-4 text-end">
             <div>
-              <div className="text-[10px] text-neutral-400 font-bold uppercase">Volume</div>
+              <div className="text-[10px] text-neutral-400 font-bold uppercase">{t('history.volume')}</div>
               <div className="text-sm font-black text-neutral-900">
-                {topProfitableProduct.quantity} vendus
+                {topProfitableProduct.quantity} {t('history.soldUnits')}
               </div>
             </div>
             <div>
-              <div className="text-[10px] text-emerald-700 font-bold uppercase">Bénéfice Net</div>
+              <div className="text-[10px] text-emerald-700 font-bold uppercase">{t('history.netProfit')}</div>
               <div className="text-lg font-black text-emerald-700">
-                +{topProfitableProduct.profit.toFixed(2)} DH
+                +{topProfitableProduct.profit.toFixed(2)} {t('common.dh')}
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Two Columns Grid: Top 5 Sellers + Category Breakdown */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Column 1: Top 5 Best Selling Items */}
+        {/* Top 5 Products */}
         <div className="rounded-3xl border border-neutral-200/90 bg-white p-5 sm:p-6 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
             <div className="flex items-center gap-2">
@@ -147,10 +145,10 @@ export function SalesInsights({ sales }: SalesInsightsProps) {
                 <TbTrophy className="h-4 w-4 stroke-[2.2]" />
               </div>
               <h3 className="font-extrabold text-neutral-900 text-sm">
-                Top 5 Articles les Plus Vendus
+                {t('history.top5Sellers')}
               </h3>
             </div>
-            <span className="text-xs text-neutral-400 font-medium">Par volume</span>
+            <span className="text-xs text-neutral-400 font-medium">{t('history.byVolume')}</span>
           </div>
 
           <div className="space-y-2.5">
@@ -180,14 +178,14 @@ export function SalesInsights({ sales }: SalesInsightsProps) {
                         {prod.name}
                       </div>
                       <div className="text-[11px] text-neutral-400 font-medium">
-                        {prod.quantity} unités • {prod.revenue.toFixed(2)} DH
+                        {prod.quantity} {t('common.units')} • {prod.revenue.toFixed(2)} {t('common.dh')}
                       </div>
                     </div>
                   </div>
 
-                  <div className="text-right shrink-0">
+                  <div className="text-end shrink-0">
                     <span className="text-xs font-black text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200/80">
-                      +{prod.profit.toFixed(2)} DH
+                      +{prod.profit.toFixed(2)} {t('common.dh')}
                     </span>
                   </div>
                 </div>
@@ -196,7 +194,7 @@ export function SalesInsights({ sales }: SalesInsightsProps) {
           </div>
         </div>
 
-        {/* Column 2: Category Breakdown */}
+        {/* Categories */}
         <div className="rounded-3xl border border-neutral-200/90 bg-white p-5 sm:p-6 shadow-xs space-y-4">
           <div className="flex items-center justify-between border-b border-neutral-100 pb-3">
             <div className="flex items-center gap-2">
@@ -204,10 +202,10 @@ export function SalesInsights({ sales }: SalesInsightsProps) {
                 <TbStack2 className="h-4 w-4 stroke-[2.2]" />
               </div>
               <h3 className="font-extrabold text-neutral-900 text-sm">
-                Répartition du Chiffre d'Affaires
+                {t('history.revenueDistribution')}
               </h3>
             </div>
-            <span className="text-xs text-neutral-400 font-medium">Par catégorie</span>
+            <span className="text-xs text-neutral-400 font-medium">{t('history.byCategory')}</span>
           </div>
 
           <div className="space-y-4">
@@ -225,7 +223,7 @@ export function SalesInsights({ sales }: SalesInsightsProps) {
                     <span className="font-bold text-neutral-800">{cat.name}</span>
                     <div className="flex items-center gap-2">
                       <span className="font-black text-neutral-900">
-                        {cat.revenue.toFixed(2)} DH
+                        {cat.revenue.toFixed(2)} {t('common.dh')}
                       </span>
                       <span className="text-[11px] font-bold text-neutral-400">
                         ({percentage.toFixed(0)}%)

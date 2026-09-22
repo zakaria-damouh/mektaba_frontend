@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import { Badge } from '@/components/ui/badge';
@@ -63,16 +64,15 @@ interface SalesListProps {
 }
 
 export function SalesList({ sales, isLoading }: SalesListProps) {
+  const { t } = useTranslation();
   const supabase = createClient();
   const queryClient = useQueryClient();
 
   const [expandedSaleId, setExpandedSaleId] = useState<string | null>(null);
 
-  // Reprint / WhatsApp State
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
   const [saleForReceipt, setSaleForReceipt] = useState<CompletedSaleData | null>(null);
 
-  // Cancellation State
   const [saleToCancel, setSaleToCancel] = useState<SaleWithItems | null>(null);
   const [cancelReason, setCancelReason] = useState('Retour article / Erreur de caisse');
   const [isCancelDialogOpen, setIsCancelDialogOpen] = useState(false);
@@ -157,13 +157,13 @@ export function SalesList({ sales, isLoading }: SalesListProps) {
   const getPaymentLabel = (method: string) => {
     switch (method) {
       case 'card':
-        return 'Carte';
+        return t('caisse.card');
       case 'transfer':
-        return 'Virement';
+        return t('caisse.transfer');
       case 'credit':
-        return 'Crédit';
+        return t('caisse.credit');
       default:
-        return 'Espèces';
+        return t('caisse.cash');
     }
   };
 
@@ -181,9 +181,9 @@ export function SalesList({ sales, isLoading }: SalesListProps) {
         <div className="h-12 w-12 rounded-2xl bg-neutral-100 flex items-center justify-center text-neutral-400 mb-2">
           <TbReceipt className="h-6 w-6 stroke-[1.8]" />
         </div>
-        <h3 className="text-sm font-bold text-neutral-900">Aucune vente enregistrée</h3>
+        <h3 className="text-sm font-bold text-neutral-900">{t('history.noSalesRecorded')}</h3>
         <p className="mt-1 text-xs text-neutral-400">
-          Les ventes validées depuis la caisse apparaîtront ici.
+          {t('history.noSalesSub')}
         </p>
       </div>
     );
@@ -191,14 +191,13 @@ export function SalesList({ sales, isLoading }: SalesListProps) {
 
   return (
     <>
-      {/* Reprint / WhatsApp Dialog */}
       <ReceiptDialog
         open={isReceiptOpen}
         onOpenChange={setIsReceiptOpen}
         saleData={saleForReceipt}
       />
 
-      {/* Airbnb Rounded-3xl Cancellation Dialog */}
+      {/* Cancellation Dialog */}
       <AlertDialog open={isCancelDialogOpen} onOpenChange={setIsCancelDialogOpen}>
         <AlertDialogContent className="max-w-md bg-white rounded-3xl p-6 sm:p-7 border border-neutral-200">
           <AlertDialogHeader>
@@ -207,17 +206,17 @@ export function SalesList({ sales, isLoading }: SalesListProps) {
                 <TbAlertTriangle className="h-5 w-5 stroke-[2.2]" />
               </div>
               <AlertDialogTitle className="text-base font-black text-neutral-900">
-                Annuler le Ticket #{saleToCancel?.receipt_number} ?
+                {t('history.cancelModalTitle')} #{saleToCancel?.receipt_number} ؟
               </AlertDialogTitle>
             </div>
             <AlertDialogDescription className="text-xs text-neutral-600 pt-2 space-y-2 leading-relaxed">
               <p>
-                Cette action va <strong>réintégrer automatiquement les articles</strong> dans votre stock physique et déduire{' '}
-                <strong className="text-neutral-900">{saleToCancel?.total_amount.toFixed(2)} DH</strong> du total de la journée.
+                {t('history.cancelModalDesc')}{' '}
+                <strong className="text-neutral-900">{saleToCancel?.total_amount.toFixed(2)} {t('common.dh')}</strong>.
               </p>
               {saleToCancel?.payment_method === 'credit' && (
                 <p className="text-amber-800 font-bold bg-amber-50 p-2.5 rounded-2xl border border-amber-200/80">
-                   Ce ticket était à crédit. Le montant sera déduit automatiquement du solde du client.
+                  {t('history.cancelCreditWarning')}
                 </p>
               )}
             </AlertDialogDescription>
@@ -225,12 +224,11 @@ export function SalesList({ sales, isLoading }: SalesListProps) {
 
           <div className="space-y-1.5 pt-2">
             <label className="text-xs font-bold text-neutral-700">
-              Motif de l'annulation
+              {t('history.cancellationReason')}
             </label>
             <Input
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
-              placeholder="ex: Client a changé d'avis, erreur de saisie..."
               className="bg-white text-xs rounded-xl border-neutral-200 focus-visible:ring-rose-500/10 focus-visible:border-rose-500"
             />
           </div>
@@ -240,7 +238,7 @@ export function SalesList({ sales, isLoading }: SalesListProps) {
               disabled={cancelSaleMutation.isPending}
               className="rounded-full px-5 text-xs font-bold border-neutral-200 hover:bg-neutral-100"
             >
-              Fermer
+              {t('common.close')}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={(e) => {
@@ -260,7 +258,7 @@ export function SalesList({ sales, isLoading }: SalesListProps) {
               ) : (
                 <TbRotate className="h-4 w-4 stroke-[2.2]" />
               )}
-              Confirmer l'annulation
+              {t('history.confirmCancel')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -290,7 +288,7 @@ export function SalesList({ sales, isLoading }: SalesListProps) {
               <button
                 type="button"
                 onClick={() => toggleExpand(sale.id)}
-                className="w-full flex items-center justify-between p-4 sm:p-5 text-left transition-colors cursor-pointer"
+                className="w-full flex items-center justify-between p-4 sm:p-5 text-start transition-colors cursor-pointer"
               >
                 <div className="flex items-center gap-3">
                   <div
@@ -309,19 +307,17 @@ export function SalesList({ sales, isLoading }: SalesListProps) {
                           isCancelled ? 'line-through text-neutral-400' : 'text-neutral-900'
                         }`}
                       >
-                        Ticket #{sale.receipt_number}
+                        #{sale.receipt_number}
                       </span>
 
-                      {/* Payment method pill */}
                       <Badge variant="outline" className="rounded-full text-[11px] gap-1 font-bold bg-neutral-50 border-neutral-200/80 px-2.5 py-0.5">
                         {getPaymentIcon(sale.payment_method)}
                         {getPaymentLabel(sale.payment_method)}
                       </Badge>
 
-                      {/* Cancelled badge */}
                       {isCancelled && (
                         <Badge variant="destructive" className="rounded-full bg-rose-600 text-white font-black text-[10px] px-2.5 py-0.5">
-                          ANNULÉ
+                          {t('history.cancelledCount')}
                         </Badge>
                       )}
                     </div>
@@ -332,7 +328,7 @@ export function SalesList({ sales, isLoading }: SalesListProps) {
                         {formatTime(sale.created_at)}
                       </span>
                       <span>•</span>
-                      <span>{sale.items.length} article(s)</span>
+                      <span>{sale.items.length} {t('stock.article')}</span>
                       {sale.customer && (
                         <>
                           <span>•</span>
@@ -346,18 +342,18 @@ export function SalesList({ sales, isLoading }: SalesListProps) {
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <div className="text-right">
+                  <div className="text-end">
                     <div
                       className={`font-black text-base ${
                         isCancelled ? 'line-through text-neutral-400' : 'text-neutral-900'
                       }`}
                     >
                       {sale.total_amount.toFixed(2)}{' '}
-                      <span className="text-xs font-bold text-emerald-600">DH</span>
+                      <span className="text-xs font-bold text-emerald-600">{t('common.dh')}</span>
                     </div>
                     {!isCancelled && (
                       <div className="text-[11px] text-emerald-700 font-bold">
-                        +{saleProfit.toFixed(2)} DH marge
+                        +{saleProfit.toFixed(2)} {t('common.dh')} {t('stock.margin')}
                       </div>
                     )}
                   </div>
@@ -373,21 +369,20 @@ export function SalesList({ sales, isLoading }: SalesListProps) {
               {/* Expandable Details */}
               {isExpanded && (
                 <div className="border-t border-neutral-100 bg-neutral-50/50 p-4 sm:p-5 space-y-3">
-                  {/* Cancellation Alert Notice */}
                   {isCancelled && (
                     <div className="rounded-2xl bg-rose-100/70 p-3.5 text-xs text-rose-900 border border-rose-200 space-y-0.5">
                       <div className="font-black flex items-center gap-1.5">
                         <TbRotate className="h-3.5 w-3.5 stroke-[2.5]" />
-                        Vente annulée le {formatTime(sale.cancelled_at || sale.created_at)}
+                        {t('history.ticketCancelledOn')} {formatTime(sale.cancelled_at || sale.created_at)}
                       </div>
                       <div className="text-[11px] text-rose-800 font-medium">
-                        Motif : {sale.cancellation_reason || 'Retour article'} (Articles réintégrés au stock).
+                        {t('history.reasonLabel')} {sale.cancellation_reason || 'Retour article'}.
                       </div>
                     </div>
                   )}
 
                   <div className="text-[10px] font-extrabold text-neutral-400 uppercase tracking-wider">
-                    Articles sur ce ticket
+                    {t('history.articlesOnTicket')}
                   </div>
 
                   <div className="space-y-1.5">
@@ -406,19 +401,19 @@ export function SalesList({ sales, isLoading }: SalesListProps) {
                               <span className="font-bold text-neutral-900">
                                 {item.product_name}
                               </span>
-                              <span className="text-neutral-400 font-medium ml-2">
-                                (x{item.quantity} à {item.unit_sell_price.toFixed(2)} DH)
+                              <span className="text-neutral-400 font-medium ms-2">
+                                (x{item.quantity} à {item.unit_sell_price.toFixed(2)} {t('common.dh')})
                               </span>
                             </div>
                           </div>
 
-                          <div className="text-right shrink-0">
+                          <div className="text-end shrink-0">
                             <div className="font-black text-neutral-900">
-                              {item.total_price.toFixed(2)} DH
+                              {item.total_price.toFixed(2)} {t('common.dh')}
                             </div>
                             {!isCancelled && (
                               <div className="text-[10px] font-bold text-emerald-700">
-                                +{itemMargin.toFixed(2)} DH
+                                +{itemMargin.toFixed(2)} {t('common.dh')}
                               </div>
                             )}
                           </div>
@@ -430,13 +425,13 @@ export function SalesList({ sales, isLoading }: SalesListProps) {
                   {/* Subtotal & Discount */}
                   <div className="border-t border-neutral-200/70 pt-2 space-y-1 text-xs text-neutral-600">
                     <div className="flex justify-between">
-                      <span className="text-neutral-400 font-medium">Sous-total :</span>
-                      <span className="font-bold text-neutral-800">{sale.subtotal.toFixed(2)} DH</span>
+                      <span className="text-neutral-400 font-medium">{t('caisse.subtotal')}</span>
+                      <span className="font-bold text-neutral-800">{sale.subtotal.toFixed(2)} {t('common.dh')}</span>
                     </div>
                     {sale.discount_amount > 0 && (
                       <div className="flex justify-between text-rose-600 font-bold">
-                        <span>Remise accordée :</span>
-                        <span>-{sale.discount_amount.toFixed(2)} DH</span>
+                        <span>{t('caisse.appliedDiscount')}</span>
+                        <span>-{sale.discount_amount.toFixed(2)} {t('common.dh')}</span>
                       </div>
                     )}
                     {sale.notes && (
@@ -446,9 +441,8 @@ export function SalesList({ sales, isLoading }: SalesListProps) {
                     )}
                   </div>
 
-                  {/* ACTION BAR: Reprint, WhatsApp & Cancel */}
+                  {/* ACTION BAR */}
                   <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-neutral-200">
-                    {/* Reprint / WhatsApp Pill Buttons */}
                     <div className="flex items-center gap-2">
                       <Button
                         size="sm"
@@ -456,7 +450,7 @@ export function SalesList({ sales, isLoading }: SalesListProps) {
                         className="h-8 rounded-full px-4 text-xs font-bold bg-neutral-900 hover:bg-neutral-800 text-white gap-1.5 cursor-pointer shadow-2xs"
                       >
                         <TbPrinter className="h-3.5 w-3.5 stroke-[2.2]" />
-                        Imprimer le Bon
+                        {t('history.reprintReceipt')}
                       </Button>
 
                       <Button
@@ -465,11 +459,10 @@ export function SalesList({ sales, isLoading }: SalesListProps) {
                         className="h-8 rounded-full px-4 text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 shadow-sm shadow-emerald-600/20 cursor-pointer"
                       >
                         <TbBrandWhatsapp className="h-4 w-4 stroke-[2.2]" />
-                        WhatsApp
+                        {t('history.whatsApp')}
                       </Button>
                     </div>
 
-                    {/* Cancellation Button */}
                     {!isCancelled && (
                       <Button
                         size="sm"
@@ -478,7 +471,7 @@ export function SalesList({ sales, isLoading }: SalesListProps) {
                         className="h-8 rounded-full px-3 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 gap-1.5 font-bold cursor-pointer"
                       >
                         <TbRotate className="h-3.5 w-3.5 stroke-[2.2]" />
-                        Annuler ce ticket
+                        {t('history.cancelTicket')}
                       </Button>
                     )}
                   </div>

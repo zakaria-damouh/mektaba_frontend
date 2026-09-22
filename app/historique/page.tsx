@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import { SalesStats } from '@/components/historique/sales-stats';
@@ -31,19 +32,17 @@ type StatusFilter = 'all' | 'completed' | 'cancelled';
 type ActiveView = 'tickets' | 'insights';
 
 export default function HistoriquePage() {
+  const { t } = useTranslation();
   const supabase = createClient();
 
-  // View & Filters State
   const [activeView, setActiveView] = useState<ActiveView>('tickets');
   const [filterPeriod, setFilterPeriod] = useState<DateFilter>('today');
   const [searchQuery, setSearchQuery] = useState('');
   const [paymentFilter, setPaymentFilter] = useState<PaymentFilter>('all');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
-  // Dialog State
   const [isCloseRegisterOpen, setIsCloseRegisterOpen] = useState(false);
 
-  // Query sales
   const { data: sales = [], isLoading } = useQuery<SaleWithItems[]>({
     queryKey: ['sales-history', filterPeriod],
     queryFn: async () => {
@@ -102,7 +101,6 @@ export default function HistoriquePage() {
     .filter((s) => s.payment_method === 'card')
     .reduce((acc, s) => acc + s.total_amount, 0);
 
-  // Filter list logic
   const filteredSales = sales.filter((sale) => {
     const query = searchQuery.trim().toLowerCase();
 
@@ -136,26 +134,25 @@ export default function HistoriquePage() {
 
   return (
     <div className="space-y-6">
-      {/* End of Day Z-Report Dialog */}
       <CloseRegisterDialog
         open={isCloseRegisterOpen}
         onOpenChange={setIsCloseRegisterOpen}
         todaySales={sales}
       />
 
-      {/* Top Header & Actions */}
+      {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-black tracking-tight text-neutral-900">
-            Historique & Clôture
+            {t('history.title')}
           </h1>
           <p className="text-xs text-neutral-400 font-medium">
-            Consultez les ventes, marges et tickets de caisse
+            {t('history.subtitle')}
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {/* Segmented Period Selector */}
+          {/* Period Selector */}
           <div className="inline-flex items-center rounded-full border border-neutral-200/90 bg-white p-1 shadow-xs">
             <button
               type="button"
@@ -166,7 +163,7 @@ export default function HistoriquePage() {
                   : 'text-neutral-500 hover:text-neutral-900'
               }`}
             >
-              Aujourd'hui
+              {t('history.today')}
             </button>
             <button
               type="button"
@@ -177,7 +174,7 @@ export default function HistoriquePage() {
                   : 'text-neutral-500 hover:text-neutral-900'
               }`}
             >
-              7 Derniers Jours
+              {t('history.sevenDays')}
             </button>
             <button
               type="button"
@@ -188,19 +185,18 @@ export default function HistoriquePage() {
                   : 'text-neutral-500 hover:text-neutral-900'
               }`}
             >
-              Ce Mois
+              {t('history.thisMonth')}
             </button>
           </div>
 
-          {/* Export Excel Button */}
+          {/* Export Excel */}
           <Button
             variant="outline"
             onClick={handleExport}
             className="h-10 rounded-full px-4 gap-1.5 border-neutral-200/90 hover:bg-neutral-50 text-neutral-800 font-bold text-xs shadow-xs hover:shadow-sm cursor-pointer"
-            title="Télécharger le journal des ventes en format Excel"
           >
             <TbDownload className="h-4 w-4 text-emerald-600 stroke-[2.2]" />
-            <span className="hidden sm:inline">Export Excel</span>
+            <span className="hidden sm:inline">{t('history.exportExcel')}</span>
           </Button>
 
           {/* Ticket Z Button */}
@@ -209,12 +205,12 @@ export default function HistoriquePage() {
             className="h-10 rounded-full px-5 gap-1.5 bg-neutral-900 hover:bg-neutral-800 text-white font-bold text-xs shadow-xs hover:scale-101 active:scale-[0.99] transition-all cursor-pointer"
           >
             <TbFileCheck className="h-4 w-4 text-emerald-400 stroke-[2.2]" />
-            <span>Clôture (Ticket Z)</span>
+            <span>{t('history.closeRegister')}</span>
           </Button>
         </div>
       </div>
 
-      {/* KPI Stats Cards */}
+      {/* KPI Stats */}
       <SalesStats
         totalRevenue={totalRevenue}
         totalProfit={totalProfit}
@@ -223,9 +219,7 @@ export default function HistoriquePage() {
         cardTotal={cardTotal}
       />
 
-      {/* ======================================================== */}
-      {/* SEGMENTED VIEW SWITCHER: Tickets vs Insights             */}
-      {/* ======================================================== */}
+      {/* View Switcher Tabs */}
       <div className="inline-flex items-center rounded-full border border-neutral-200/90 bg-white p-1 shadow-xs">
         <button
           type="button"
@@ -237,7 +231,7 @@ export default function HistoriquePage() {
           }`}
         >
           <TbReceipt className="h-4 w-4 stroke-[2.2]" />
-          <span>Liste des Tickets ({filteredSales.length})</span>
+          <span>{t('history.tabTickets')} ({filteredSales.length})</span>
         </button>
 
         <button
@@ -250,21 +244,19 @@ export default function HistoriquePage() {
           }`}
         >
           <TbChartBar className="h-4 w-4 stroke-[2.2]" />
-          <span>Statistiques & Top Ventes</span>
+          <span>{t('history.tabInsights')}</span>
         </button>
       </div>
 
-      {/* VIEW 1: TICKETS LIST */}
+      {/* View 1: Tickets */}
       {activeView === 'tickets' && (
         <div className="space-y-4">
-          {/* Search & Filters Capsule Bar */}
           <div className="space-y-3 rounded-3xl border border-neutral-200/90 bg-white p-4 shadow-xs">
-            {/* Search Capsule */}
-            <div className="flex items-center rounded-full border border-neutral-200/90 bg-white p-1 pl-4 shadow-xs hover:shadow-sm transition-all focus-within:border-emerald-600 focus-within:ring-2 focus-within:ring-emerald-600/10">
+            <div className="flex items-center rounded-full border border-neutral-200/90 bg-white p-1 ps-4 shadow-xs hover:shadow-sm transition-all focus-within:border-emerald-600 focus-within:ring-2 focus-within:ring-emerald-600/10">
               <TbSearch className="h-4 w-4 shrink-0 text-neutral-400 stroke-[2.2]" />
               <input
                 type="text"
-                placeholder="Rechercher par N° de ticket (ex: 12), nom de client, ou article vendu..."
+                placeholder={t('history.searchPlaceholder')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-transparent px-2 text-xs font-medium text-neutral-800 placeholder-neutral-400 focus:outline-hidden"
@@ -273,18 +265,17 @@ export default function HistoriquePage() {
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="p-1 text-neutral-400 hover:text-neutral-600 cursor-pointer mr-1"
+                  className="p-1 text-neutral-400 hover:text-neutral-600 cursor-pointer me-1"
                 >
                   <TbX className="h-3.5 w-3.5" />
                 </button>
               )}
             </div>
 
-            {/* Filter Pills */}
             <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-neutral-100">
               <div className="flex flex-wrap items-center gap-1.5">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 mr-1">
-                  Règlement :
+                <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400 me-1">
+                  {t('history.settlement')}
                 </span>
 
                 <button
@@ -296,7 +287,7 @@ export default function HistoriquePage() {
                       : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
                   }`}
                 >
-                  Tous
+                  {t('common.all')}
                 </button>
 
                 <button
@@ -308,7 +299,7 @@ export default function HistoriquePage() {
                       : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
                   }`}
                 >
-                  <TbCash className="h-3.5 w-3.5" /> Espèces
+                  <TbCash className="h-3.5 w-3.5" /> {t('caisse.cash')}
                 </button>
 
                 <button
@@ -316,11 +307,11 @@ export default function HistoriquePage() {
                   onClick={() => setPaymentFilter('credit')}
                   className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold transition-all cursor-pointer ${
                     paymentFilter === 'credit'
-                  ? 'bg-amber-600 text-white shadow-xs'
-                  : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
+                      ? 'bg-amber-600 text-white shadow-xs'
+                      : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
                   }`}
                 >
-                  <TbNotebook className="h-3.5 w-3.5" /> Crédit
+                  <TbNotebook className="h-3.5 w-3.5" /> {t('caisse.credit')}
                 </button>
 
                 <button
@@ -332,7 +323,7 @@ export default function HistoriquePage() {
                       : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
                   }`}
                 >
-                  <TbCreditCard className="h-3.5 w-3.5" /> Carte
+                  <TbCreditCard className="h-3.5 w-3.5" /> {t('caisse.card')}
                 </button>
 
                 <button
@@ -344,11 +335,10 @@ export default function HistoriquePage() {
                       : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
                   }`}
                 >
-                  <TbBuildingBank className="h-3.5 w-3.5" /> Virement
+                  <TbBuildingBank className="h-3.5 w-3.5" /> {t('caisse.transfer')}
                 </button>
               </div>
 
-              {/* Status Filter */}
               <div className="flex items-center gap-1.5">
                 <button
                   type="button"
@@ -365,7 +355,7 @@ export default function HistoriquePage() {
                 >
                   <TbRotate className="h-3.5 w-3.5" />
                   <span>
-                    Annulés ({sales.filter((s) => s.status === 'cancelled').length})
+                    {t('history.cancelledCount')} ({sales.filter((s) => s.status === 'cancelled').length})
                   </span>
                 </button>
               </div>
@@ -376,7 +366,7 @@ export default function HistoriquePage() {
         </div>
       )}
 
-      {/* VIEW 2: BUSINESS INSIGHTS */}
+      {/* View 2: Insights */}
       {activeView === 'insights' && <SalesInsights sales={sales} />}
     </div>
   );
