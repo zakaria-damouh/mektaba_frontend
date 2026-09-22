@@ -1,6 +1,7 @@
 export const resources = {
   fr: {
     translation: {
+      // 1. Common Global Vocabulary
       common: {
         cancel: 'Annuler',
         save: 'Enregistrer',
@@ -14,7 +15,12 @@ export const resources = {
         details: 'Détails',
         all: 'Tous',
         service: 'Service',
+        search: 'Rechercher',
+        error: 'Erreur',
+        success: 'Succès',
       },
+
+      // 2. Navbar & Brand
       nav: {
         pos: 'Caisse',
         stock: 'Stock',
@@ -24,6 +30,8 @@ export const resources = {
         activePos: 'Caisse Active',
         storeSubtitle: 'Système de caisse',
       },
+
+      // 3. Stock & Inventory Module
       stock: {
         title: 'Inventaire & Stock',
         subtitle: 'Suivi des articles, alertes et valeur du magasin',
@@ -64,7 +72,7 @@ export const resources = {
         setExactStock: 'Régler le stock exact en rayon',
         setBtn: 'Fixer',
         unlimited: 'Illimité',
-        deletePrompt: "Êtes-vous sûr de vouloir supprimer",
+        deletePrompt: 'Êtes-vous sûr de vouloir supprimer',
         deleteWarning: "L'article sera archivé et retiré de la caisse, mais vos anciens tickets resteront intacts.",
         deleteConfirm: 'Confirmer la suppression',
         productName: "Nom de l'article *",
@@ -83,12 +91,15 @@ export const resources = {
         addedOn: 'Ajouté le',
         uncategorized: 'Sans Catégorie',
       },
+
+      // 4. Caisse & Point of Sale Module
       caisse: {
         currentCart: 'Panier Actuel',
         emptyCart: 'Vider',
         emptyCartMsg: "Touchez un article à gauche pour l'ajouter",
         venteLibre: 'Vente Libre',
         searchPlaceholder: 'Rechercher un article ou scanner code-barres...',
+        allCategories: 'Tous',
         serviceBadge: 'Service',
         outOfStockBadge: 'Épuisé',
         reservedBadge: 'Réservé',
@@ -132,6 +143,8 @@ export const resources = {
         nextCustomer: 'Passer au client suivant (Nouvelle Vente)',
         whatsappPhone: 'Numéro WhatsApp du client (Optionnel)',
       },
+
+      // 5. Carnet de Dette Module
       carnet: {
         title: 'Le Carnet de Dette',
         subtitle: 'Gestion du crédit client, encaissements et rappels WhatsApp',
@@ -175,6 +188,8 @@ export const resources = {
         oldDebtNotice: 'Si ce client a déjà une dette sur votre ancien carnet papier, inscrivez-la ici.',
         createCard: 'Créer la fiche',
       },
+
+      // 6. Historique, Clôture & Reporting Module
       history: {
         title: 'Historique & Clôture',
         subtitle: 'Consultez les ventes, marges et tickets de caisse',
@@ -198,7 +213,7 @@ export const resources = {
         cancelTicket: 'Annuler ce ticket',
         cancelModalTitle: 'Annuler le Ticket',
         cancelModalDesc: 'Cette action va réintégrer automatiquement les articles dans votre stock physique et déduire',
-        cancelCreditWarning: 'Ce ticket était à crédit. Le montant sera déduit automatiquement du solde du client.',
+        cancelCreditWarning: 'TbNotebook Ce ticket était à crédit. Le montant sera déduit automatiquement du solde du client.',
         cancellationReason: "Motif de l'annulation",
         confirmCancel: "Confirmer l'annulation",
         reprintReceipt: 'Imprimer le Bon',
@@ -214,8 +229,8 @@ export const resources = {
         expectedCash: 'Espèces Attendu (Caisse)',
         countedCashLabel: 'Espèces comptées dans le tiroir-caisse (DH) *',
         perfectRegister: '✓ Caisse Parfaite (Aucun écart)',
-        surplus: 'Excédent de caisse :',
-        shortage: 'Manquant de caisse :',
+        surplus: 'TbNotebook Excédent de caisse :',
+        shortage: 'TbNotebook Manquant de caisse :',
         closureNote: 'Note de clôture (Optionnel)',
         saveAndPrintZ: 'Enregistrer & Imprimer le Ticket Z',
         starProductBadge: 'Article Star (Plus Gros Bénéfice de la Période)',
@@ -228,10 +243,24 @@ export const resources = {
         notEnoughData: 'Pas assez de données',
         notEnoughDataSub: 'Enregistrez des ventes pour afficher les statistiques et le classement.',
       },
+
+      // 7. Login & Security
+      login: {
+        title: 'Maktaba POS',
+        subtitle: 'Connectez-vous pour accéder à la caisse et au stock',
+        emailLabel: 'Adresse Email',
+        passwordLabel: 'Mot de passe',
+        submitBtn: 'Se Connecter',
+        connecting: 'Connexion en cours...',
+        secureAccess: 'Accès sécurisé pour commerçant • Maktaba POS',
+        invalidCredentials: 'Email ou mot de passe incorrect.',
+      },
     },
   },
+
   ar: {
     translation: {
+      // 1. Common Global Vocabulary
       common: {
         cancel: 'إلغاء',
         save: 'حفظ',
@@ -245,7 +274,12 @@ export const resources = {
         details: 'تفاصيل',
         all: 'الكل',
         service: 'خدمة',
+        search: 'بحث',
+        error: 'خطأ',
+        success: 'تم بنجاح',
       },
+
+      // 2. Navbar & Brand
       nav: {
         pos: 'نقطة البيع',
         stock: 'المخزون',
@@ -255,6 +289,8 @@ export const resources = {
         activePos: 'الصندوق مفتوح',
         storeSubtitle: 'نظام إدارة الصندوق',
       },
+
+      // 3. Stock & Inventory Module
       stock: {
         title: 'إدارة المخزون والسلع',
         subtitle: 'متابعة السلع، التنبيهات وقيمة رأس المال في الرفوف',
@@ -287,6 +323,7 @@ export const resources = {
         actions: 'إجراءات',
         noProductsFound: 'لم يتم العثور على أي مادة',
         noProductsSub: 'تأكد من شريط البحث أو أضف مادة جديدة إلى المتجر.',
+        currentStock: 'المخزون الحالي',
         quickRestock: 'إضافة سريعة بالكرتون / الباكية',
         currentStockLabel: 'الحالي :',
         addPack: 'إضافة حزمة / كرتون',
@@ -314,12 +351,15 @@ export const resources = {
         addedOn: 'تاريخ الإضافة :',
         uncategorized: 'بدون صنف',
       },
+
+      // 4. Caisse & Point of Sale Module
       caisse: {
         currentCart: 'سلة المشتريات الحالية',
         emptyCart: 'إفراغ',
         emptyCartMsg: 'اضغط على أي مادة من القائمة لإضافتها',
         venteLibre: 'بيع حر / خدمة',
         searchPlaceholder: 'ابحث باسم المادة أو بالباركود...',
+        allCategories: 'الكل',
         serviceBadge: 'خدمة',
         outOfStockBadge: 'نفد',
         reservedBadge: 'محجوز',
@@ -341,7 +381,7 @@ export const resources = {
         selectCustomerCredit: 'اختر الزبون من الكناش *',
         chooseCustomer: '-- اختر الزبون من القائمة --',
         holdBtn: 'تعليق الطلب',
-        heldCartsBadge: 'طلبات معلقة',
+        heldCartsBadge: 'معلقة',
         resumeCart: 'استرجاع سلة معلقة',
         heldCartsTitle: 'الطلبات والسلل المعلقة',
         heldCartsSubtitle: 'استرجع طلبية زبون مؤجلة لمواصلة الحساب',
@@ -363,6 +403,8 @@ export const resources = {
         nextCustomer: 'الانتقال للزبون التالي (بيعة جديدة)',
         whatsappPhone: 'رقم هاتف الزبون للواتساب (اختياري)',
       },
+
+      // 5. Carnet de Dette Module
       carnet: {
         title: 'كناش الكريدي والديون',
         subtitle: 'إدارة ديون الزبائن، الاستخلاص والتذكير التلقائي عبر الواتساب',
@@ -406,6 +448,8 @@ export const resources = {
         oldDebtNotice: 'إذا كان على هذا الزبون دين مسبق في كناشك الورقي، سجله هنا للبدء به.',
         createCard: 'فتح حساب للزبون',
       },
+
+      // 6. Historique, Clôture & Reporting Module
       history: {
         title: 'سجل المبيعات والإغلاق اليومي',
         subtitle: 'متابعة المداخيل، الأرباح وفواتير الصندوق اليومية',
@@ -429,7 +473,7 @@ export const resources = {
         cancelTicket: 'إلغاء واسترجاع هذه الفاتورة',
         cancelModalTitle: 'إلغاء التوصيل رقم',
         cancelModalDesc: 'هذا الإجراء سيقوم بإرجاع السلع تلقائياً إلى المخزون وخصم المبلغ من المجموع اليومي وقدره',
-        cancelCreditWarning: 'هذا التوصيل كان بالكريدي، سيتم خصم قيمته تلقائياً من دين الزبون في الكناش.',
+        cancelCreditWarning: 'TbNotebook هذا التوصيل كان بالكريدي، سيتم خصم قيمته تلقائياً من دين الزبون في الكناش.',
         cancellationReason: 'سبب الإلغاء أو الاسترجاع',
         confirmCancel: 'تأكيد الإلغاء واسترجاع السلع',
         reprintReceipt: 'إعادة طباعة الوصل',
@@ -445,8 +489,8 @@ export const resources = {
         expectedCash: 'الكاش النظري المتوقع في الصندوق',
         countedCashLabel: 'الكاش الحقيقي المعدود في مجر الصندوق (درهم) *',
         perfectRegister: '✓ الصندوق مضبوط بالضبط (لا يوجد أي فرق)',
-        surplus: 'فائض زائد في الصندوق :',
-        shortage: 'نقص في الصندوق :',
+        surplus: 'TbNotebook فائض زائد في الصندوق :',
+        shortage: 'TbNotebook نقص في الصندوق :',
         closureNote: 'ملاحظة الإغلاق (اختياري)',
         saveAndPrintZ: 'حفظ وطباعة وصل الإغلاق (Ticket Z)',
         starProductBadge: 'المادة الأكثر ربحية في هذه الفترة',
@@ -458,6 +502,18 @@ export const resources = {
         byCategory: 'حسب الصنف',
         notEnoughData: 'لا توجد بيانات كافية بعد',
         notEnoughDataSub: 'قم بتأكيد بعض المبيعات لعرض الترتيب والإحصائيات.',
+      },
+
+      // 7. Login & Security
+      login: {
+        title: 'Maktaba POS',
+        subtitle: 'قم بتسجيل الدخول للوصول إلى الصندوق والمخزون',
+        emailLabel: 'البريد الإلكتروني',
+        passwordLabel: 'كلمة المرور',
+        submitBtn: 'تسجيل الدخول',
+        connecting: 'جاري تسجيل الدخول...',
+        secureAccess: 'ولوج آمن مخصص لصاحب المحل • Maktaba POS',
+        invalidCredentials: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.',
       },
     },
   },

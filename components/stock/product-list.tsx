@@ -372,7 +372,7 @@ export function ProductList({
                         {t('common.service')}
                       </Badge>
                     ) : isLow ? (
-                      <Badge variant="destructive" className="rounded-full bg-amber-500 gap-1 font-bold text-[10px]">
+                      <Badge variant="destructive" className="rounded-full bg-amber-500 gap-1 font-bold text-[10px] text-white">
                         <TbAlertTriangle className="h-3 w-3 stroke-[2.5]" />
                         {t('stock.lowStock')} ({product.stock_quantity})
                       </Badge>

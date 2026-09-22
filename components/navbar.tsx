@@ -95,11 +95,14 @@ export default function Navbar() {
 
           {/* Right Controls: Language Switcher & User Logout */}
           <div className="flex items-center gap-2.5">
-            {/* AIRBNB LANGUAGE SWITCHER PILL [ FR | عربي ] */}
+            {/*  LANGUAGE SWITCHER PILL [ FR | عربي ] */}
             <div className="inline-flex items-center rounded-full border border-neutral-200 bg-neutral-50/80 p-1 shadow-2xs">
               <button
                 type="button"
-                onClick={() => switchLanguage('fr')}
+                onClick={() => {
+                  switchLanguage('fr');
+                  router.refresh();
+                }}
                 className={`rounded-full px-2.5 py-1 text-xs font-black transition-all cursor-pointer ${
                   currentLang === 'fr'
                     ? 'bg-white text-emerald-700 shadow-xs'
@@ -110,7 +113,10 @@ export default function Navbar() {
               </button>
               <button
                 type="button"
-                onClick={() => switchLanguage('ar')}
+                onClick={() => {
+                  switchLanguage('ar');
+                  router.refresh();
+                }}
                 className={`rounded-full px-2.5 py-1 text-xs font-black transition-all cursor-pointer ${
                   currentLang === 'ar'
                     ? 'bg-white text-emerald-700 shadow-xs font-sans'
