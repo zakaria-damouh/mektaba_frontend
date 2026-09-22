@@ -13,7 +13,13 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User, Phone, FileText, Loader2, Coins } from 'lucide-react';
+import {
+  TbUser,
+  TbPhone,
+  TbFileText,
+  TbLoader2,
+  TbCoins,
+} from 'react-icons/tb';
 
 interface CustomerDialogProps {
   open: boolean;
@@ -88,79 +94,84 @@ export function CustomerDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md bg-white rounded-3xl p-6 shadow-2xl">
-        <DialogHeader>
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-100 text-indigo-700">
-              <User className="h-5 w-5" />
+      <DialogContent className="max-w-md bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-neutral-200/90">
+        <DialogHeader className="border-b border-neutral-100 pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 shadow-xs">
+              <TbUser className="h-5 w-5 stroke-[2.2]" />
             </div>
-            <DialogTitle className="text-base font-bold text-slate-900">
-              {isEditMode ? 'Modifier la fiche client' : 'Nouveau Client au Carnet'}
-            </DialogTitle>
+            <div>
+              <DialogTitle className="text-base font-black tracking-tight text-neutral-900">
+                {isEditMode ? 'Modifier la Fiche Client' : 'Nouveau Client au Carnet'}
+              </DialogTitle>
+              <p className="text-[11px] text-neutral-400 font-medium">
+                Gestion des crédits et coordonnées WhatsApp
+              </p>
+            </div>
           </div>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-          {/* Name */}
+          {/* Customer Name */}
           <div className="space-y-1.5">
-            <Label htmlFor="cust_name" className="text-xs">
+            <Label htmlFor="cust_name" className="text-xs font-bold text-neutral-700">
               Nom complet ou Surnom *
             </Label>
             <div className="relative">
-              <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <TbUser className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400 stroke-[2.2]" />
               <Input
                 id="cust_name"
                 required
                 placeholder="ex: Si Mohamed (Prof Maths), Famille Bennani"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="pl-9 bg-white"
+                className="pl-10 bg-white rounded-xl border-neutral-200 text-xs focus-visible:ring-emerald-600/10 focus-visible:border-emerald-600"
               />
             </div>
           </div>
 
-          {/* Phone */}
+          {/* Customer Phone */}
           <div className="space-y-1.5">
-            <Label htmlFor="cust_phone" className="text-xs">
+            <Label htmlFor="cust_phone" className="text-xs font-bold text-neutral-700">
               Numéro de Téléphone (Pour rappels WhatsApp)
             </Label>
             <div className="relative">
-              <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <TbPhone className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400 stroke-[2.2]" />
               <Input
                 id="cust_phone"
                 placeholder="ex: 06 12 34 56 78"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="pl-9 bg-white"
+                className="pl-10 bg-white rounded-xl border-neutral-200 text-xs focus-visible:ring-emerald-600/10 focus-visible:border-emerald-600"
               />
             </div>
           </div>
 
           {/* Notes */}
           <div className="space-y-1.5">
-            <Label htmlFor="cust_notes" className="text-xs">
+            <Label htmlFor="cust_notes" className="text-xs font-bold text-neutral-700">
               Remarque / Adresse
             </Label>
             <div className="relative">
-              <FileText className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+              <TbFileText className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400 stroke-[2.2]" />
               <Input
                 id="cust_notes"
                 placeholder="ex: Voisin d'en face, Règle à la fin du mois..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                className="pl-9 bg-white"
+                className="pl-10 bg-white rounded-xl border-neutral-200 text-xs focus-visible:ring-emerald-600/10 focus-visible:border-emerald-600"
               />
             </div>
           </div>
 
-          {/* Transfer old paper notebook balance */}
+          {/* Paper Notebook Transfer Box (Only on create) */}
           {!isEditMode && (
-            <div className="space-y-1.5 rounded-2xl bg-amber-50/60 border border-amber-200 p-3">
-              <Label htmlFor="cust_debt" className="text-xs font-bold text-amber-900 flex items-center gap-1">
-                <Coins className="h-3.5 w-3.5 text-amber-600" />
+            <div className="space-y-1.5 rounded-2xl bg-amber-50/70 border border-amber-200/80 p-3.5">
+              <Label htmlFor="cust_debt" className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
+                <TbCoins className="h-4 w-4 text-amber-700 stroke-[2.2]" />
                 Ancienne dette à reporter (Optionnel)
               </Label>
-              <p className="text-[11px] text-amber-700/80">
+              <p className="text-[11px] text-amber-800/80 leading-snug">
                 Si ce client a déjà une dette sur votre ancien carnet papier, inscrivez-la ici.
               </p>
               <Input
@@ -170,27 +181,28 @@ export function CustomerDialog({
                 min="0"
                 value={initialDebt}
                 onChange={(e) => setInitialDebt(e.target.value)}
-                className="bg-white font-bold text-slate-900 mt-1"
+                className="bg-white font-black text-neutral-900 rounded-xl border-amber-200 text-sm mt-1 focus-visible:ring-amber-500/10 focus-visible:border-amber-500"
               />
             </div>
           )}
 
-          {/* Actions */}
-          <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          {/* Footer Actions */}
+          <div className="flex justify-end gap-2 pt-3 border-t border-neutral-100">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
+              className="rounded-full px-5 text-xs font-bold border-neutral-200 hover:bg-neutral-100"
             >
               Annuler
             </Button>
             <Button
               type="submit"
               disabled={saveCustomerMutation.isPending}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold cursor-pointer"
+              className="rounded-full px-6 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-600/20 cursor-pointer"
             >
               {saveCustomerMutation.isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <TbLoader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
               {isEditMode ? 'Enregistrer' : 'Créer la fiche'}
             </Button>

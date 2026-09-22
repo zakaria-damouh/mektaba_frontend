@@ -8,19 +8,20 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
-  UserPlus,
-  Search,
-  BookOpen,
-  DollarSign,
-  AlertCircle,
-  Users,
-  MessageCircle,
-  Coins,
-  History,
-  Pencil,
-  Loader2,
-  Phone,
-} from 'lucide-react';
+  TbUserPlus,
+  TbSearch,
+  TbNotebook,
+  TbCurrencyDirham,
+  TbAlertCircle,
+  TbUsers,
+  TbBrandWhatsapp,
+  TbCoins,
+  TbHistory,
+  TbPencil,
+  TbLoader2,
+  TbPhone,
+  TbX,
+} from 'react-icons/tb';
 
 import { CustomerDialog } from '@/components/carnet/customer-dialog';
 import { PaymentDialog } from '@/components/carnet/payment-dialog';
@@ -32,7 +33,7 @@ export default function CarnetPage() {
   const supabase = createClient();
 
   const [search, setSearch] = useState('');
-  const [filterTab, setFilterTab] = useState<FilterTab>('debtors'); // Default to clients with debt!
+  const [filterTab, setFilterTab] = useState<FilterTab>('debtors');
 
   // Dialog States
   const [isCustomerDialogOpen, setIsCustomerDialogOpen] = useState(false);
@@ -75,7 +76,6 @@ export default function CarnetPage() {
     return matchesSearch && matchesTab;
   });
 
-  // 1-Click WhatsApp Reminder Function
   const handleSendWhatsAppReminder = (customer: Customer) => {
     if (!customer.phone) {
       alert("Ce client n'a pas de numéro de téléphone enregistré.");
@@ -113,112 +113,135 @@ export default function CarnetPage() {
         onOpenChange={setIsHistoryOpen}
       />
 
-      {/* Header */}
+      {/* Top Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-            <BookOpen className="h-6 w-6 text-indigo-600" />
+          <h1 className="text-2xl font-black tracking-tight text-neutral-900 flex items-center gap-2">
+            <TbNotebook className="h-7 w-7 text-emerald-600 stroke-[2.2]" />
             Le Carnet de Dette
           </h1>
-          <p className="text-sm text-slate-500">
+          <p className="text-xs text-neutral-400 font-medium">
             Gestion du crédit client, encaissements et rappels WhatsApp
           </p>
         </div>
 
+        {/* Airbnb Pill Action Button */}
         <Button
           onClick={() => {
             setCustomerToEdit(null);
             setIsCustomerDialogOpen(true);
           }}
-          className="gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold cursor-pointer"
+          className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full px-5 py-2.5 text-xs font-bold shadow-sm shadow-emerald-600/20 hover:scale-102 transition-all cursor-pointer"
         >
-          <UserPlus className="h-4 w-4" />
+          <TbUserPlus className="h-4 w-4 stroke-[2.5]" />
           Nouveau Client
         </Button>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+      {/* ======================================================== */}
+      {/* AIRBNB-STYLE KPI METRIC CARDS                            */}
+      {/* ======================================================== */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
         {/* Total Debt */}
-        <div className="rounded-2xl border border-rose-200 bg-rose-50/50 p-4 shadow-xs">
+        <div className="flex flex-col justify-between rounded-3xl border border-rose-200/80 bg-rose-50/40 p-5 shadow-xs hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
           <div className="flex items-center justify-between text-rose-700">
-            <span className="text-xs font-bold uppercase tracking-wider">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-rose-700">
               Total Dettes Détenues
             </span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-rose-100 text-rose-600">
-              <DollarSign className="h-4 w-4" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-rose-100 text-rose-600 border border-rose-200/60 shadow-xs">
+              <TbCurrencyDirham className="h-5 w-5 stroke-[2.2]" />
             </div>
           </div>
-          <div className="mt-2 text-2xl font-black text-rose-600">
-            {totalDebt.toLocaleString('fr-FR', {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}{' '}
-            <span className="text-xs font-bold text-rose-400">DH</span>
-          </div>
-          <div className="mt-1 text-[11px] text-rose-700 font-medium">
-            Argent à récupérer dans le quartier
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-black tracking-tight text-rose-600">
+              {totalDebt.toLocaleString('fr-FR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}{' '}
+              <span className="text-xs font-bold text-rose-400">DH</span>
+            </div>
+            <div className="mt-1 text-[11px] text-rose-800/80 font-medium">
+              Argent à récupérer dans le quartier
+            </div>
           </div>
         </div>
 
         {/* Debtor Clients Count */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
-          <div className="flex items-center justify-between text-slate-500">
-            <span className="text-xs font-bold uppercase tracking-wider">
+        <div className="flex flex-col justify-between rounded-3xl border border-neutral-200/90 bg-white p-5 shadow-xs hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
+          <div className="flex items-center justify-between text-neutral-500">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
               Clients Débiteurs
             </span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
-              <Users className="h-4 w-4" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-amber-50 text-amber-700 border border-amber-200/60 shadow-xs">
+              <TbUsers className="h-5 w-5 stroke-[2.2]" />
             </div>
           </div>
-          <div className="mt-2 text-2xl font-black text-slate-900">
-            {debtorsCount}{' '}
-            <span className="text-xs font-bold text-slate-400">clients</span>
-          </div>
-          <div className="mt-1 text-[11px] text-slate-400">
-            sur {customers.length} clients enregistrés
+          <div className="mt-3">
+            <div className="text-2xl sm:text-3xl font-black tracking-tight text-neutral-900">
+              {debtorsCount}{' '}
+              <span className="text-xs font-bold text-neutral-400">clients</span>
+            </div>
+            <div className="mt-1 text-[11px] text-neutral-400 font-medium">
+              sur {customers.length} clients enregistrés
+            </div>
           </div>
         </div>
 
         {/* Top Debtor */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
-          <div className="flex items-center justify-between text-slate-500">
-            <span className="text-xs font-bold uppercase tracking-wider">
+        <div className="flex flex-col justify-between rounded-3xl border border-neutral-200/90 bg-white p-5 shadow-xs hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
+          <div className="flex items-center justify-between text-neutral-500">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-400">
               Plus Forte Dette
             </span>
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
-              <AlertCircle className="h-4 w-4" />
+            <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-200/60 shadow-xs">
+              <TbAlertCircle className="h-5 w-5 stroke-[2.2]" />
             </div>
           </div>
-          <div className="mt-2 text-lg font-bold text-slate-900 truncate">
-            {topDebtor ? topDebtor.name : 'Aucun'}
-          </div>
-          <div className="mt-0.5 text-sm font-black text-rose-600">
-            {topDebtor ? `${topDebtor.current_debt.toFixed(2)} DH` : '0.00 DH'}
+          <div className="mt-3">
+            <div className="text-lg font-black text-neutral-900 truncate">
+              {topDebtor ? topDebtor.name : 'Aucun débiteur'}
+            </div>
+            <div className="mt-0.5 text-sm font-black text-rose-600">
+              {topDebtor ? `${topDebtor.current_debt.toFixed(2)} DH` : '0.00 DH'}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Search & Tabs */}
+      {/* ======================================================== */}
+      {/* SEARCH CAPSULE & SEGMENTED TABS                          */}
+      {/* ======================================================== */}
       <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <Input
-            placeholder="Rechercher par nom ou téléphone..."
+        {/* Search Capsule */}
+        <div className="flex-1 flex items-center rounded-full border border-neutral-200/90 bg-white p-1 pl-4 shadow-xs hover:shadow-sm transition-all focus-within:border-emerald-600 focus-within:ring-2 focus-within:ring-emerald-600/10">
+          <TbSearch className="h-4 w-4 shrink-0 text-neutral-400 stroke-[2.2]" />
+          <input
+            type="text"
+            placeholder="Rechercher par nom de client ou téléphone..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 bg-white"
+            className="w-full bg-transparent px-2 text-xs font-medium text-neutral-800 placeholder-neutral-400 focus:outline-hidden"
           />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch('')}
+              className="p-1 text-neutral-400 hover:text-neutral-600 cursor-pointer mr-1"
+            >
+              <TbX className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
 
-        <div className="inline-flex h-10 items-center rounded-xl bg-slate-100 p-1 border border-slate-200">
+        {/* Segmented Filter Pills */}
+        <div className="inline-flex h-10 items-center rounded-full border border-neutral-200/90 bg-white p-1 shadow-xs shrink-0">
           <button
             type="button"
             onClick={() => setFilterTab('debtors')}
-            className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+            className={`rounded-full px-4 py-1.5 text-xs font-bold transition-all cursor-pointer ${
               filterTab === 'debtors'
-                ? 'bg-white text-rose-600 shadow-xs'
-                : 'text-slate-500 hover:text-slate-900'
+                ? 'bg-rose-600 text-white shadow-xs'
+                : 'text-neutral-500 hover:text-neutral-900'
             }`}
           >
             Avec Dette ({debtorsCount})
@@ -226,10 +249,10 @@ export default function CarnetPage() {
           <button
             type="button"
             onClick={() => setFilterTab('all')}
-            className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+            className={`rounded-full px-4 py-1.5 text-xs font-bold transition-all cursor-pointer ${
               filterTab === 'all'
-                ? 'bg-white text-indigo-600 shadow-xs'
-                : 'text-slate-500 hover:text-slate-900'
+                ? 'bg-neutral-900 text-white shadow-xs'
+                : 'text-neutral-500 hover:text-neutral-900'
             }`}
           >
             Tous ({customers.length})
@@ -237,10 +260,10 @@ export default function CarnetPage() {
           <button
             type="button"
             onClick={() => setFilterTab('cleared')}
-            className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+            className={`rounded-full px-4 py-1.5 text-xs font-bold transition-all cursor-pointer ${
               filterTab === 'cleared'
-                ? 'bg-white text-emerald-600 shadow-xs'
-                : 'text-slate-500 hover:text-slate-900'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-neutral-500 hover:text-neutral-900'
             }`}
           >
             À Jour (0 DH)
@@ -248,71 +271,76 @@ export default function CarnetPage() {
         </div>
       </div>
 
-      {/* Customer Cards Grid */}
+      {/* ======================================================== */}
+      {/* CUSTOMER CARDS GRID                                      */}
+      {/* ======================================================== */}
       {isLoading ? (
-        <div className="flex h-64 items-center justify-center rounded-2xl border bg-white">
-          <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+        <div className="flex h-64 items-center justify-center rounded-3xl border border-neutral-200/90 bg-white">
+          <TbLoader2 className="h-8 w-8 animate-spin text-emerald-600" />
         </div>
       ) : filteredCustomers.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center rounded-2xl border bg-white">
-          <BookOpen className="h-10 w-10 text-slate-300" />
-          <p className="mt-2 text-sm text-slate-500 font-medium">Aucun client trouvé</p>
+        <div className="flex flex-col items-center justify-center py-20 text-center rounded-3xl border border-neutral-200/90 bg-white">
+          <div className="h-12 w-12 rounded-2xl bg-neutral-100 flex items-center justify-center text-neutral-400 mb-2">
+            <TbNotebook className="h-6 w-6 stroke-[1.8]" />
+          </div>
+          <p className="text-xs font-bold text-neutral-700">Aucun client trouvé</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
           {filteredCustomers.map((customer) => {
             const hasDebt = customer.current_debt > 0;
 
             return (
               <div
                 key={customer.id}
-                className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-xs hover:border-indigo-300 transition-all"
+                className="group flex flex-col justify-between rounded-3xl border border-neutral-200/90 bg-white p-5 shadow-xs hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
               >
                 <div>
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <h3 className="font-bold text-slate-900 text-sm">
+                      <h3 className="font-extrabold text-neutral-900 text-sm tracking-tight group-hover:text-emerald-700 transition-colors">
                         {customer.name}
                       </h3>
                       {customer.phone && (
-                        <div className="flex items-center gap-1 text-xs text-slate-500 mt-0.5">
-                          <Phone className="h-3 w-3 text-slate-400" />
-                          {customer.phone}
+                        <div className="flex items-center gap-1.5 text-xs text-neutral-400 font-medium mt-1">
+                          <TbPhone className="h-3.5 w-3.5 text-neutral-400 stroke-[2]" />
+                          <span>{customer.phone}</span>
                         </div>
                       )}
                     </div>
 
+                    {/* Balance Pill */}
                     {hasDebt ? (
-                      <Badge variant="destructive" className="bg-rose-500 font-black text-xs font-semibold text-white">
+                      <Badge className="rounded-full bg-rose-50 text-rose-700 border border-rose-200/80 font-black text-xs px-3 py-1 shadow-2xs">
                         {customer.current_debt.toFixed(2)} DH
                       </Badge>
                     ) : (
-                      <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 text-xs font-bold">
+                      <Badge variant="outline" className="rounded-full bg-emerald-50 text-emerald-700 border-emerald-200 font-bold text-xs px-3 py-1">
                         À jour
                       </Badge>
                     )}
                   </div>
 
                   {customer.notes && (
-                    <p className="text-xs text-slate-400 italic mt-2 line-clamp-2">
+                    <p className="text-xs text-neutral-400 italic mt-2.5 line-clamp-2 leading-relaxed">
                       {customer.notes}
                     </p>
                   )}
                 </div>
 
-                {/* Action Buttons */}
-                <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between gap-1">
-                  <div className="flex items-center gap-1">
+                {/* Actions Bottom Bar */}
+                <div className="mt-5 pt-3.5 border-t border-neutral-100 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1 text-neutral-400">
                     <button
                       type="button"
                       onClick={() => {
                         setHistoryCustomer(customer);
                         setIsHistoryOpen(true);
                       }}
-                      className="p-1.5 text-slate-400 hover:text-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors cursor-pointer"
+                      className="p-2 hover:text-emerald-700 hover:bg-emerald-50 rounded-full transition-colors cursor-pointer"
                       title="Historique du carnet"
                     >
-                      <History className="h-4 w-4" />
+                      <TbHistory className="h-4 w-4 stroke-[2.2]" />
                     </button>
 
                     <button
@@ -321,25 +349,25 @@ export default function CarnetPage() {
                         setCustomerToEdit(customer);
                         setIsCustomerDialogOpen(true);
                       }}
-                      className="p-1.5 text-slate-400 hover:text-slate-800 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+                      className="p-2 hover:text-neutral-900 hover:bg-neutral-100 rounded-full transition-colors cursor-pointer"
                       title="Modifier les infos"
                     >
-                      <Pencil className="h-4 w-4" />
+                      <TbPencil className="h-4 w-4 stroke-[2.2]" />
                     </button>
 
                     {customer.phone && hasDebt && (
                       <button
                         type="button"
                         onClick={() => handleSendWhatsAppReminder(customer)}
-                        className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
+                        className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-full transition-colors cursor-pointer"
                         title="Envoyer un rappel poli sur WhatsApp"
                       >
-                        <MessageCircle className="h-4 w-4" />
+                        <TbBrandWhatsapp className="h-4 w-4 stroke-[2.2]" />
                       </button>
                     )}
                   </div>
 
-                  {/* Pay button */}
+                  {/* Encaisser Button */}
                   {hasDebt && (
                     <Button
                       size="sm"
@@ -347,9 +375,9 @@ export default function CarnetPage() {
                         setPaymentCustomer(customer);
                         setIsPaymentOpen(true);
                       }}
-                      className="h-8 gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs cursor-pointer shadow-2xs"
+                      className="h-8 rounded-full px-4 gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-sm shadow-emerald-600/20 cursor-pointer"
                     >
-                      <Coins className="h-3.5 w-3.5" />
+                      <TbCoins className="h-3.5 w-3.5 stroke-[2.2]" />
                       Encaisser
                     </Button>
                   )}

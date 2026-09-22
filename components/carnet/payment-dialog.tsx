@@ -13,7 +13,14 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Coins, CheckCircle2, Banknote, CreditCard, Building, Loader2 } from 'lucide-react';
+import {
+  TbCoins,
+  TbCheck,
+  TbCash,
+  TbCreditCard,
+  TbBuildingBank,
+  TbLoader2,
+} from 'react-icons/tb';
 
 interface PaymentDialogProps {
   customer: Customer | null;
@@ -33,7 +40,7 @@ export function PaymentDialog({
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | 'transfer'>('cash');
   const [notes, setNotes] = useState('');
 
-  // ALL HOOKS MUST BE DECLARED FIRST (Before any conditional returns)
+  // All Hooks declared first
   const recordPaymentMutation = useMutation({
     mutationFn: async () => {
       if (!customer) throw new Error('Client introuvable');
@@ -78,63 +85,68 @@ export function PaymentDialog({
     }
   };
 
-  // Safe early return ONLY AFTER all hooks have executed
   if (!customer) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md bg-white rounded-3xl p-6 shadow-2xl">
-        <DialogHeader>
-          <div className="flex items-center gap-2 text-emerald-600">
-            <Coins className="h-6 w-6" />
+      <DialogContent className="max-w-md bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-neutral-200/90">
+        <DialogHeader className="border-b border-neutral-100 pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 shadow-xs">
+              <TbCoins className="h-5 w-5 stroke-[2.2]" />
+            </div>
             <div>
-              <DialogTitle className="text-base font-bold text-slate-900">
+              <DialogTitle className="text-base font-black tracking-tight text-neutral-900">
                 Encaisser un Règlement
               </DialogTitle>
-              <p className="text-xs text-slate-400">
-                Client : <span className="font-bold text-slate-700">{customer.name}</span>
+              <p className="text-[11px] text-neutral-400 font-medium">
+                Client : <span className="font-extrabold text-neutral-800">{customer.name}</span>
               </p>
             </div>
           </div>
         </DialogHeader>
 
         {/* Current Debt Card */}
-        <div className="rounded-2xl bg-amber-50/80 border border-amber-200 p-4 text-center space-y-1">
-          <span className="text-xs font-semibold text-amber-800">Dette Actuelle</span>
-          <div className="text-2xl font-black text-amber-900">
-            {customer.current_debt.toFixed(2)} <span className="text-xs">DH</span>
+        <div className="rounded-2xl bg-amber-50/80 border border-amber-200/80 p-4 text-center space-y-1">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-amber-800">
+            Dette Actuelle sur le Carnet
+          </span>
+          <div className="text-2xl sm:text-3xl font-black text-amber-950">
+            {customer.current_debt.toFixed(2)}{' '}
+            <span className="text-xs font-extrabold text-amber-700">DH</span>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 pt-1">
-          {/* Quick Pay Buttons */}
-          <div className="flex gap-1.5">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={handlePayFull}
-              className="flex-1 text-xs font-bold border-indigo-200 text-indigo-700 hover:bg-indigo-50 cursor-pointer"
-            >
-              Régler la totalité ({customer.current_debt.toFixed(0)} DH)
-            </Button>
-            {[50, 100, 200].map((preset) => (
-              <Button
-                key={preset}
+          {/* Quick Pay Preset Pills */}
+          <div className="space-y-1.5">
+            <span className="block text-[10px] font-bold uppercase tracking-wider text-neutral-400">
+              Règlement rapide
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              <button
                 type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setAmount(preset.toString())}
-                className="text-xs  font-bold border-slate-200 hover:bg-slate-50 cursor-pointer"
+                onClick={handlePayFull}
+                className="flex-1 rounded-full px-3 py-1.5 text-xs font-extrabold border border-emerald-200 bg-emerald-50/80 text-emerald-800 hover:bg-emerald-100 active:scale-95 transition-all cursor-pointer shadow-2xs"
               >
-                {preset} DH
-              </Button>
-            ))}
+                Tout régler ({customer.current_debt.toFixed(0)} DH)
+              </button>
+              {[50, 100, 200].map((preset) => (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => setAmount(preset.toString())}
+                  className="rounded-full px-3 py-1.5 text-xs font-bold border border-neutral-200/90 bg-neutral-50/70 text-neutral-700 hover:bg-neutral-100 active:scale-95 transition-all cursor-pointer"
+                >
+                  {preset} DH
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Amount Input */}
           <div className="space-y-1.5">
-            <Label htmlFor="pay_amount" className="text-xs">
+            <Label htmlFor="pay_amount" className="text-xs font-bold text-neutral-700">
               Montant versé par le client (DH) *
             </Label>
             <Input
@@ -146,53 +158,56 @@ export function PaymentDialog({
               placeholder="0.00"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              className="text-lg font-black text-slate-900 bg-white"
+              className="text-lg font-black text-neutral-900 bg-white rounded-xl border-neutral-200 focus-visible:ring-emerald-600/10 focus-visible:border-emerald-600"
             />
           </div>
 
-          {/* Payment Method */}
+          {/* Segmented Payment Method Pills */}
           <div className="space-y-1.5">
-            <Label className="text-xs">Mode de Règlement</Label>
-            <div className="grid grid-cols-3 gap-1.5">
+            <Label className="text-xs font-bold text-neutral-700">Mode de Règlement</Label>
+            <div className="grid grid-cols-3 gap-1.5 p-1 bg-neutral-100 rounded-full">
               <button
                 type="button"
                 onClick={() => setPaymentMethod('cash')}
-                className={`flex items-center justify-center gap-1 rounded-xl py-2 text-xs font-bold border cursor-pointer ${
+                className={`flex items-center justify-center gap-1.5 rounded-full py-1.5 text-xs font-bold transition-all cursor-pointer ${
                   paymentMethod === 'cash'
-                    ? 'bg-indigo-600 text-white border-indigo-600'
-                    : 'bg-slate-50 text-slate-600 border-slate-200'
+                    ? 'bg-neutral-900 text-white shadow-xs'
+                    : 'text-neutral-600 hover:text-neutral-900'
                 }`}
               >
-                <Banknote className="h-3.5 w-3.5" /> Espèces
+                <TbCash className="h-3.5 w-3.5" />
+                <span>Espèces</span>
               </button>
               <button
                 type="button"
                 onClick={() => setPaymentMethod('card')}
-                className={`flex items-center justify-center gap-1 rounded-xl py-2 text-xs font-bold border cursor-pointer ${
+                className={`flex items-center justify-center gap-1.5 rounded-full py-1.5 text-xs font-bold transition-all cursor-pointer ${
                   paymentMethod === 'card'
-                    ? 'bg-indigo-600 text-white border-indigo-600'
-                    : 'bg-slate-50 text-slate-600 border-slate-200'
+                    ? 'bg-neutral-900 text-white shadow-xs'
+                    : 'text-neutral-600 hover:text-neutral-900'
                 }`}
               >
-                <CreditCard className="h-3.5 w-3.5" /> Carte
+                <TbCreditCard className="h-3.5 w-3.5" />
+                <span>Carte</span>
               </button>
               <button
                 type="button"
                 onClick={() => setPaymentMethod('transfer')}
-                className={`flex items-center justify-center gap-1 rounded-xl py-2 text-xs font-bold border cursor-pointer ${
+                className={`flex items-center justify-center gap-1.5 rounded-full py-1.5 text-xs font-bold transition-all cursor-pointer ${
                   paymentMethod === 'transfer'
-                    ? 'bg-indigo-600 text-white border-indigo-600'
-                    : 'bg-slate-50 text-slate-600 border-slate-200'
+                    ? 'bg-neutral-900 text-white shadow-xs'
+                    : 'text-neutral-600 hover:text-neutral-900'
                 }`}
               >
-                <Building className="h-3.5 w-3.5" /> Virement
+                <TbBuildingBank className="h-3.5 w-3.5" />
+                <span>Virement</span>
               </button>
             </div>
           </div>
 
           {/* Notes */}
           <div className="space-y-1.5">
-            <Label htmlFor="pay_notes" className="text-xs">
+            <Label htmlFor="pay_notes" className="text-xs font-bold text-neutral-700">
               Remarque (Optionnel)
             </Label>
             <Input
@@ -200,28 +215,29 @@ export function PaymentDialog({
               placeholder="ex: Avance rentrée, donné par son fils..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="bg-white text-xs"
+              className="bg-white text-xs rounded-xl border-neutral-200 focus-visible:ring-emerald-600/10 focus-visible:border-emerald-600"
             />
           </div>
 
-          {/* Submit */}
-          <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+          {/* Footer Actions */}
+          <div className="flex justify-end gap-2 pt-3 border-t border-neutral-100">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
+              className="rounded-full px-5 text-xs font-bold border-neutral-200 hover:bg-neutral-100"
             >
               Annuler
             </Button>
             <Button
               type="submit"
               disabled={recordPaymentMutation.isPending}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold gap-1.5 cursor-pointer"
+              className="rounded-full px-6 text-xs font-black bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm shadow-emerald-600/20 gap-1.5 cursor-pointer"
             >
               {recordPaymentMutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <TbLoader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <CheckCircle2 className="h-4 w-4" />
+                <TbCheck className="h-4 w-4 stroke-[3]" />
               )}
               Valider l'encaissement
             </Button>
