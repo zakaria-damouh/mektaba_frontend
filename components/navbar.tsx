@@ -16,6 +16,7 @@ import {
   TbSparkles,
   TbLanguage,
 } from 'react-icons/tb';
+import Image from 'next/image';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -47,24 +48,17 @@ export default function Navbar() {
       {/* Desktop Top Navbar */}
       <header className="sticky top-0 z-40 w-full border-b border-neutral-200/80 bg-white/90 backdrop-blur-md transition-all">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
-          {/* Brand Logo */}
-          <Link href="/caisse" className="flex items-center gap-2.5 group">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-md shadow-emerald-600/20 transition-transform duration-200 group-hover:scale-105">
-              <TbBuildingStore className="h-6 w-6 stroke-[2.2]" />
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="text-xl font-black tracking-tight text-neutral-900 font-sans">
-                  maktaba
-                </span>
-                <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wide text-emerald-700 border border-emerald-200/60">
-                  <TbSparkles className="h-2.5 w-2.5" />
-                  POS
-                </span>
-              </div>
-              <p className="text-[11px] text-neutral-400 font-medium -mt-0.5">
-                {t('nav.storeSubtitle')}
-              </p>
+         {/* Brand Logo (Full Image) */}
+          <Link href="/caisse" className="flex items-center group">
+            <div className="relative h-12 w-auto transition-transform duration-200 group-hover:scale-105">
+              <Image
+                src="/Logo.png" 
+                alt="Maktaba Logo"
+                width={160}
+                height={48}
+                className="h-12 w-auto object-contain"
+                priority
+              />
             </div>
           </Link>
 

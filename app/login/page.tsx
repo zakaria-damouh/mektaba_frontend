@@ -19,6 +19,7 @@ import {
   TbSparkles,
   TbShieldCheck,
 } from 'react-icons/tb';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -70,20 +71,16 @@ export default function LoginPage() {
         {/* TOP BAR: BRAND LOGO + LANGUAGE SWITCHER                  */}
         {/* ======================================================== */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-md shadow-emerald-600/20">
-              <TbBuildingStore className="h-5 w-5 stroke-[2.2]" />
+          <div className="relative h-12 w-auto transition-transform duration-200 group-hover:scale-105">
+              <Image
+                src="/Logo.png" 
+                alt="Maktaba Logo"
+                width={160}
+                height={48}
+                className="h-12 w-auto object-contain"
+                priority
+              />
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-xl font-black tracking-tight text-neutral-900 font-sans">
-                maktaba
-              </span>
-              <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-emerald-700 border border-emerald-200/60 shadow-2xs">
-                <TbSparkles className="h-2.5 w-2.5" />
-                POS
-              </span>
-            </div>
-          </div>
 
           {/* Airbnb Language Switcher Pill [ FR | عربي ] */}
           <div className="inline-flex items-center rounded-full border border-neutral-200 bg-white p-1 shadow-2xs">
