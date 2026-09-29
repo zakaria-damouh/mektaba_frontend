@@ -24,6 +24,7 @@ const cairo = Cairo({
 export const metadata: Metadata = {
   title: 'Maktaba POS & Stock',
   description: 'Système de gestion pour Maktaba',
+  manifest: '/manifest.json', // <-- Links the manifest
 };
 
 export default async function RootLayout({
@@ -48,6 +49,17 @@ export default async function RootLayout({
             </main>
           </I18nProvider>
         </QueryProvider>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js');
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   );
