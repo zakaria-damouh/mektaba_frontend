@@ -18,8 +18,11 @@ import {
   TbEyeOff,
   TbSparkles,
   TbShieldCheck,
+  TbBrandWindows, 
+  TbDownload,     
 } from 'react-icons/tb';
 import Image from 'next/image';
+
 
 export default function LoginPage() {
   const router = useRouter();
@@ -196,6 +199,31 @@ export default function LoginPage() {
               )}
             </Button>
           </form>
+          {/* ======================================================== */}
+        {/* WINDOWS DESKTOP APP DOWNLOAD PILL                        */}
+        {/* ======================================================== */}
+        <div className="flex flex-col items-center justify-center gap-2 pt-2">
+          <a
+            href="/downloads/Maktaba-POS.exe"
+            download="Maktaba-POS.exe"
+            className="group inline-flex items-center gap-2.5 rounded-full border border-neutral-200/90 bg-white px-5 py-2.5 text-xs font-bold text-neutral-700 shadow-xs hover:border-emerald-500 hover:text-emerald-700 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.99] transition-all duration-200 cursor-pointer"
+          >
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-neutral-100 text-neutral-700 group-hover:bg-emerald-50 group-hover:text-emerald-600 transition-colors">
+              <TbBrandWindows className="h-3.5 w-3.5 stroke-[2.2]" />
+            </div>
+            <span>
+              {currentLang === 'ar'
+                ? 'تحميل برنامج الحاسوب لنظام الويندوز (.exe)'
+                : "Télécharger l'application Windows (.exe)"}
+            </span>
+            <TbDownload className="h-4 w-4 text-neutral-400 group-hover:text-emerald-600 transition-colors" />
+          </a>
+          <p className="text-[10px] text-neutral-400 font-medium">
+            {currentLang === 'ar'
+              ? 'تثبيت سريع لحاسوب الصندوق (بدون متصفح)'
+              : 'Installation directe pour le PC de caisse'}
+          </p>
+        </div>
         </div>
 
         {/* Trust Badge Footer */}
