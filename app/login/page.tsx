@@ -202,7 +202,7 @@ export default function LoginPage() {
           {/* ======================================================== */}
         {/* WINDOWS DESKTOP APP DOWNLOAD PILL                        */}
         {/* ======================================================== */}
-        <div className="flex flex-col items-center justify-center gap-2 pt-2">
+        {/* <div className="flex flex-col items-center justify-center gap-2 pt-2">
           <a
             href="/downloads/Maktaba-POS.exe"
             download="Maktaba-POS.exe"
@@ -223,7 +223,7 @@ export default function LoginPage() {
               ? 'تثبيت سريع لحاسوب الصندوق (بدون متصفح)'
               : 'Installation directe pour le PC de caisse'}
           </p>
-        </div>
+        </div> */}
         </div>
 
         {/* Trust Badge Footer */}
